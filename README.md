@@ -49,7 +49,9 @@ docker run -d --name campfire -p 80:80 -p 443:443 \
   then the operator's responsibility. Redis transports jobs only; request fragment
   caching and single-node Cable fanout remain in the BEAM. The native job worker
   starts automatically; `bin/jobs` can also run it against the same database, Redis
-  and storage environment.
+  and storage environment. During a rolling Rails-to-Elixir cutover,
+  `CAMPFIRE_CABLE_REDIS_BRIDGE=1` temporarily bridges Action Cable broadcasts through
+  the shared Redis instance; normal single-node operation should leave it disabled.
 - The app listener binds loopback behind Thruster. Forwarded URL headers are
   trusted from the local proxy. The current Dockerfile packages the amd64
   Thruster binary.

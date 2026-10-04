@@ -1,6 +1,6 @@
 defmodule Campfire.CableFramesTest do
   use ExUnit.Case, async: false
-  alias Campfire.{Cable, CableFrames}
+  alias Campfire.{Cable, CableFrames, CableRedisBridge}
 
   test "frames preserve Rails escaping and change with payload and identifier" do
     for payload <- [~s({"body":"<p>& café</p>"}), ~s({"body":"updated"})],
@@ -57,5 +57,24 @@ defmodule Campfire.CableFramesTest do
              "identifier" => "subscription-id",
              "message" => %{"body" => "hello"}
            }
+  end
+
+  test "the migration bridge dispatches Redis payloads through local registries" do
+    Registry.register(Campfire.Streams, "room-stream", "subscription-id")
+    Registry.register(Campfire.Connections, 42, nil)
+
+    assert :ok = CableRedisBridge.deliver("room-stream", ~s({"body":"hello"}))
+    assert_receive {:delivery, "room-stream", "subscription-id", ~s({"body":"hello"})}
+
+    internal =
+      "action_cable/" <> Base.url_encode64("gid://campfire/User/42", padding: false)
+
+    assert :ok =
+             CableRedisBridge.deliver(
+               internal,
+               ~s({"type":"disconnect","reconnect":false})
+             )
+
+    assert_receive {:disconnect, false}
   end
 end

@@ -181,6 +181,16 @@ defmodule Campfire.Cable do
   def broadcast(stream, data) do
     payload = Rails.json(data)
 
+    if Process.whereis(Campfire.CableRedisBridge) do
+      Campfire.CableRedisBridge.publish(stream, payload)
+    else
+      deliver(stream, payload)
+    end
+
+    :ok
+  end
+
+  def deliver(stream, payload) do
     Registry.dispatch(Campfire.Streams, stream, fn entries ->
       for {pid, id} <- entries, do: send(pid, {:delivery, stream, id, payload})
     end)
@@ -189,9 +199,20 @@ defmodule Campfire.Cable do
   end
 
   def disconnect(user_id, reconnect) do
-    Registry.dispatch(Campfire.Connections, user_id, fn entries ->
-      for {pid, _} <- entries, do: send(pid, {:disconnect, reconnect})
-    end)
+    if Process.whereis(Campfire.CableRedisBridge) do
+      internal =
+        "action_cable/" <>
+          Base.url_encode64("gid://campfire/User/#{user_id}", padding: false)
+
+      Campfire.CableRedisBridge.publish(
+        internal,
+        Rails.json(%{"type" => "disconnect", "reconnect" => reconnect})
+      )
+    else
+      Registry.dispatch(Campfire.Connections, user_id, fn entries ->
+        for {pid, _} <- entries, do: send(pid, {:disconnect, reconnect})
+      end)
+    end
   end
 
   def gid_param(room),

@@ -22,15 +22,22 @@ defmodule Campfire.Application do
     children = children ++ Campfire.HtmlParser.children()
 
     children =
-      case System.get_env("REDIS_URL") do
-        nil ->
-          children
+      case {System.get_env("REDIS_URL"), System.get_env("CAMPFIRE_CABLE_REDIS_BRIDGE")} do
+        {url, "1"} when is_binary(url) ->
+          children ++
+            [
+              {Redix, {url, [name: Campfire.Redis]}},
+              {Campfire.CableRedisBridge, url}
+            ]
 
-        url ->
+        {url, _} when is_binary(url) ->
           children ++
             [
               {Redix, {url, [name: Campfire.Redis]}}
             ]
+
+        {nil, _} ->
+          children
       end
 
     children =

@@ -20,7 +20,18 @@ defmodule Campfire.MessagesViewTest do
     refute second =~ "first-session-token"
   end
 
-  test "cached boosts receive the current session's CSRF token" do
+  test "broadcast-cached messages preserve Rails' tokenless fragment behavior", %{
+    message: message
+  } do
+    broadcast = MessagesView.render(message, "https://campfire.test")
+    page = MessagesView.render(message, "https://campfire.test", "page-token")
+
+    assert broadcast == page
+    refute page =~ "page-token"
+    refute page =~ ~s(name="authenticity_token")
+  end
+
+  test "page-cached boosts receive the current session's CSRF token" do
     boost = DB.one("SELECT * FROM boosts ORDER BY id LIMIT 1")
     first = MessagesView.render_boost(boost, "first-boost-token")
     second = MessagesView.render_boost(boost, "second-boost-token")
@@ -29,6 +40,16 @@ defmodule Campfire.MessagesViewTest do
     refute first =~ "second-boost-token"
     assert second =~ ~s(value="second-boost-token")
     refute second =~ "first-boost-token"
+  end
+
+  test "broadcast-cached boosts preserve Rails' tokenless fragment behavior" do
+    boost = DB.one("SELECT * FROM boosts ORDER BY id LIMIT 1")
+    broadcast = MessagesView.render_boost(boost)
+    page = MessagesView.render_boost(boost, "page-token")
+
+    assert broadcast == page
+    refute page =~ "page-token"
+    refute page =~ ~s(name="authenticity_token")
   end
 
   test "stored rich text cannot inject the internal CSRF placeholder" do

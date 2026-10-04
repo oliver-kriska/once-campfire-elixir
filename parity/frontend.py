@@ -5,6 +5,7 @@ from sessions import ROOT
 from http_shutdown import seed
 BASE=ROOT/'var/frontend';NAME='campfire-elixir-frontend';BASE.mkdir(parents=True,exist_ok=True)
 BINARY='/usr/local/bundle/ruby/3.4.0/gems/thruster-0.1.23-x86_64-linux/exe/x86_64-linux/thrust'
+CPUS=os.environ.get('PARITY_CPUS',','.join(map(str,sorted(os.sched_getaffinity(0)))))
 def run(args):return subprocess.check_output(list(map(str,args)),text=True)
 def query(folder,path,secure=True,h2=True):
  body=folder/'body';head=folder/'headers'
@@ -19,7 +20,7 @@ def one(side):
  folder=BASE/side;seed(folder);(folder/'db').mkdir();shutil.copyfile(folder/'production.sqlite3',folder/'db/production.sqlite3');cache=folder/'thruster';cache.mkdir();(cache/'campfire.test').write_bytes((BASE/'key.pem').read_bytes()+(BASE/'cert.pem').read_bytes())
  image='campfire-reference:app' if side=='reference' else 'campfire-elixir:release'
  subprocess.run(['docker','rm','-f',NAME],capture_output=True)
- run(['docker','run','-d','--name',NAME,'--cpuset-cpus','8-11','--user',f'{os.getuid()}:{os.getgid()}','--env-file',ROOT/'parity/reference.env','-e','TLS_DOMAIN=campfire.test','-e','H2C_ENABLED=true','-e','LOG_REQUESTS=false','-p','127.0.0.1:47076:80','-p','127.0.0.1:47077:443','-v',f'{folder}:/rails/storage',image])
+ run(['docker','run','-d','--name',NAME,'--cpuset-cpus',CPUS,'--user',f'{os.getuid()}:{os.getgid()}','--env-file',ROOT/'parity/reference.env','-e','TLS_DOMAIN=campfire.test','-e','H2C_ENABLED=true','-e','LOG_REQUESTS=false','-p','127.0.0.1:47076:80','-p','127.0.0.1:47077:443','-v',f'{folder}:/rails/storage',image])
  try:
   for _ in range(120):
    try:

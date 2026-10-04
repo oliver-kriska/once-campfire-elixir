@@ -10,14 +10,16 @@ defmodule Campfire.MessagesView do
   def render(message, base, csrf \\ nil) do
     :message
     |> Campfire.FragmentCache.record(message, fn ->
-      render_fragment(message, base, :placeholder)
+      render_fragment(message, base, if(csrf, do: :placeholder))
     end)
     |> put_csrf(csrf)
   end
 
   def render_many(messages, base, csrf) do
+    csrf_mode = if csrf, do: :placeholder
+
     :message
-    |> Campfire.FragmentCache.records(messages, &render_fragment(&1, base, :placeholder))
+    |> Campfire.FragmentCache.records(messages, &render_fragment(&1, base, csrf_mode))
     |> Enum.map_join(&put_csrf(&1, csrf))
   end
 
@@ -100,7 +102,9 @@ defmodule Campfire.MessagesView do
 
   def render_boost(boost, csrf \\ nil) do
     :boost
-    |> Campfire.FragmentCache.record(boost, fn -> render_boost_fragment(boost, :placeholder) end)
+    |> Campfire.FragmentCache.record(boost, fn ->
+      render_boost_fragment(boost, if(csrf, do: :placeholder))
+    end)
     |> put_csrf(csrf)
   end
 
