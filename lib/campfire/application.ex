@@ -10,14 +10,23 @@ defmodule Campfire.Application do
       Campfire.RateLimiter,
       Campfire.FragmentCache,
       Campfire.CableFrames,
-      {Campfire.DB, path: database_path},
-      {Exqlite,
-       name: Campfire.DB.ReadPool,
-       database: database_path,
-       mode: :readonly,
-       pool_size: min(System.schedulers_online(), 8),
-       busy_timeout: 5000}
+      {Campfire.DB, path: database_path}
     ]
+
+    children =
+      if System.schedulers_online() > 1 do
+        children ++
+          [
+            {Exqlite,
+             name: Campfire.DB.ReadPool,
+             database: database_path,
+             mode: :readonly,
+             pool_size: min(System.schedulers_online(), 8),
+             busy_timeout: 5000}
+          ]
+      else
+        children
+      end
 
     children = children ++ Campfire.HtmlParser.children()
 

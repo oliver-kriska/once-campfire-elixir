@@ -62,7 +62,7 @@ defmodule Campfire.DB do
   end
 
   def query(sql, params \\ []) do
-    if select?(sql) do
+    if select?(sql) and Process.whereis(Campfire.DB.ReadPool) do
       case Exqlite.query(Campfire.DB.ReadPool, sql, params) do
         {:ok, %{columns: columns, rows: rows}} ->
           Enum.map(rows, &Map.new(Enum.zip(columns, &1)))
