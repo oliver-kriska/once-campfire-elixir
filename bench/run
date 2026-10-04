@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Benchmark the Elixir and Rust ports on the same Rails seed and CPUs.
+# Benchmark production images on the same Rails seed and CPUs.
 #
 #   bench/run [--apps elixir,rust[,reference]] [--reps 4] [--out DIR] [--user-agent UA]
 #   bench/report DIR            # median + spread table from a results dir
@@ -35,13 +35,17 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 BENCH=$ROOT/bench
 RUST_ROOT=${RUST_ROOT:-/home/dhh/Work/basecamp/once-campfire-rust}
-SEED=$RUST_ROOT/parity/.seed/default
+SEED=${SEED:-$ROOT/parity/.seed/default}
 LABELS=$SEED/labels.json
 ENV_FILE=$ROOT/parity/reference.env
 
 REFERENCE_IMAGE=${REFERENCE_IMAGE:-campfire-reference:app}
 RUST_IMAGE=${RUST_IMAGE:-campfire-rust:app}
 ELIXIR_IMAGE=${ELIXIR_IMAGE:-campfire-elixir:release}
+BASELINE_IMAGE=${BASELINE_IMAGE:-campfire-elixir:baseline}
+CANDIDATE_IMAGE=${CANDIDATE_IMAGE:-campfire-elixir:candidate}
+BASELINE_SHA=${BASELINE_SHA:-unknown}
+CANDIDATE_SHA=${CANDIDATE_SHA:-unknown}
 GO_IMAGE=${GO_IMAGE:-once-campfire-go:optimized}
 GO_ROOT=${GO_ROOT:-$(dirname "$ROOT")/once-campfire-go}
 SERVER_CPUS=${SERVER_CPUS:-8-11}
@@ -65,6 +69,8 @@ suite() { [[ " $SUITES " = *" $1 "* ]]; }
 RUST_EXTRA_ENV=${RUST_EXTRA_ENV-}
 BASE=http://127.0.0.1:$PORT
 LOADGEN=$ROOT/target/bench/release/loadgen
+LOADGEN_BUILD_IMAGE=${LOADGEN_BUILD_IMAGE:-rust:1.98.1-slim}
+LOADGEN_CARGO_HOME=${LOADGEN_CARGO_HOME:-/tmp/campfire-bench-cargo}
 
 APPS=elixir,rust REPS=4 OUT="" USER_AGENT_ARGS=()
 while [ $# -gt 0 ]; do
@@ -103,7 +109,13 @@ for port in ports:
   try:s.bind(('127.0.0.1',port))
   except OSError:raise SystemExit(f'Benchmark port {port} is already occupied')
 PYPORT
-(cd "$BENCH/loadgen" && CARGO_TARGET_DIR=$ROOT/target/bench mise exec rust@1.98.1 -- cargo build --release --locked --offline -q)
+if [ ! -x "$LOADGEN" ]; then
+  mkdir -p "$LOADGEN_CARGO_HOME"
+  docker run --rm --user "$(id -u):$(id -g)" \
+    -e CARGO_HOME=/cargo -e CARGO_TARGET_DIR=/app/target/bench \
+    -v "$LOADGEN_CARGO_HOME:/cargo" -v "$ROOT:/app" -w /app/bench/loadgen \
+    "$LOADGEN_BUILD_IMAGE" cargo build --release --locked
+fi
 
 ROOM=$(label rooms.watercooler)        # the busy room (131 messages)
 WRITE_ROOM=$(label rooms.hq)           # writes and uploads go here, so the busy room stays put
@@ -112,14 +124,14 @@ AVATAR=$(label avatar_tokens.jason)    # image avatar
 EMAIL=$(label emails.david)
 PASSWORD=$(label passwords.all)
 
-image_for() { case "$1" in reference) echo "$REFERENCE_IMAGE" ;; elixir) echo "$ELIXIR_IMAGE" ;; go) echo "$GO_IMAGE" ;; rust|rust-identity) echo "$RUST_IMAGE" ;; esac; }
+image_for() { case "$1" in reference) echo "$REFERENCE_IMAGE" ;; baseline) echo "$BASELINE_IMAGE" ;; candidate) echo "$CANDIDATE_IMAGE" ;; elixir) echo "$ELIXIR_IMAGE" ;; go) echo "$GO_IMAGE" ;; rust|rust-identity) echo "$RUST_IMAGE" ;; esac; }
 
 # Environment: parity/.env.reference, but with the reference's *default* process model for
 # SERVER_CPUS (config/puma.rb: workers = ceil(nproc * 0.666), JOB_CONCURRENCY the same, 5 threads;
 # config/resque-pool.yml: ceil(nproc * 0.5) Resque workers). The Rust app reads RAILS_MAX_THREADS
 # (reader pool) and JOB_CONCURRENCY (job workers) the same way; it is always one process.
 env_args() {
-  if [ "${1:-}" = elixir ]; then printf '%s\n' -e "PORT=$PORT"; fi
+  if [[ "${1:-}" =~ ^(baseline|candidate|elixir)$ ]]; then printf '%s\n' -e "PORT=$PORT"; fi
   local ncpu; ncpu=$(taskset -c "$SERVER_CPUS" nproc)
   local workers=$(( (ncpu * 666 + 999) / 1000 ))
   grep -Ev '^(#|$|WEB_CONCURRENCY|JOB_CONCURRENCY|RAILS_MAX_THREADS|RAILS_LOG_LEVEL)' "$ENV_FILE" | sed 's/^/-e\n/'
@@ -140,7 +152,12 @@ db.commit()
 PY
 }
 
-cgroup_dir() { echo "/sys/fs/cgroup/system.slice/docker-$(docker inspect -f '{{.Id}}' "$CONTAINER").scope"; }
+cgroup_dir() {
+  local pid relative
+  pid=$(docker inspect -f '{{.State.Pid}}' "$CONTAINER")
+  relative=$(cut -d: -f3 "/proc/$pid/cgroup")
+  echo "/sys/fs/cgroup$relative"
+}
 mem_anon() { awk '$1=="anon"{print $2}' "$1/memory.stat"; }
 
 # Samples memory.current and anon every 200ms, keeping the maxima in $1.
@@ -288,16 +305,21 @@ PY
   echo "date: $(date -Is)"
   echo "host: $(uname -r), $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs), $(nproc) threads, $(free -g | awk '/Mem:/{print $2}')GB"
   echo "server cpus: $SERVER_CPUS (nproc $(taskset -c "$SERVER_CPUS" nproc)); loadgen cpus: $LOADGEN_CPUS; network: $NETWORK"
-  echo "env: $(env_args | grep -E 'WEB_CONC|JOB_CONC|MAX_THREADS' | tr '\n' ' ')"
+  echo "env: $(env_args | grep -E 'WEB_CONC|JOB_CONC|MAX_THREADS' | paste -sd' ' -)"
   echo "seed sha256: $(sha256sum "$SEED/db/production.sqlite3")"
+  echo "seed tree sha256: $(cd "$SEED" && find . -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum)"
+  echo "loadgen sha256: $(sha256sum "$LOADGEN")"
+  echo "loadgen build image: $(docker image inspect -f '{{index .RepoDigests 0}}' "$LOADGEN_BUILD_IMAGE")"
   echo "elixir source digest: $(python3 "$BENCH/validate.py" digest)"
-  echo "rust extra env: $RUST_EXTRA_ENV"
+  echo "rust extra env:${RUST_EXTRA_ENV:+ $RUST_EXTRA_ENV}"
   echo "workload: suites=$SUITES HTTP_SECS=$HTTP_SECS HTTP_CONCS=$HTTP_CONCS CABLE_CLIENTS=$CABLE_CLIENTS CABLE_TPUT_SECS=$CABLE_TPUT_SECS CABLE_POSTERS=$CABLE_POSTERS UPLOAD_REPS=$UPLOAD_REPS REPS=$REPS"
   echo "quiet wait: LOAD_MAX=$LOAD_MAX LOAD_WAIT_SECS=$LOAD_WAIT_SECS"
   echo "user agent: ${USER_AGENT_ARGS[1]:-(none)}"
   for app in ${APPS//,/ }; do echo "$app image: $(image_for "$app") $(docker image inspect -f '{{.Id}} {{.Created}} unpacked_bytes={{.Size}}' "$(image_for "$app")")"; done
+  if [[ ",$APPS," = *,baseline,* ]]; then echo "baseline source: $BASELINE_SHA"; fi
+  if [[ ",$APPS," = *,candidate,* ]]; then echo "candidate source: $CANDIDATE_SHA"; fi
   if [[ ",$APPS," = *,go,* ]]; then echo "go HEAD: $(git -C "$GO_ROOT" rev-parse HEAD) (dirty: $(git -C "$GO_ROOT" status --porcelain -- cmd internal assets go.mod go.sum third_party Dockerfile | wc -l) files)"; fi
-  echo "rust HEAD: $(git -C "$RUST_ROOT" rev-parse --short HEAD) (dirty: $(git -C "$RUST_ROOT" status --porcelain -- crates Cargo.toml Cargo.lock | wc -l) files)"
+  if [[ ",$APPS," = *,rust,* || ",$APPS," = *,rust-identity,* ]]; then echo "rust HEAD: $(git -C "$RUST_ROOT" rev-parse --short HEAD) (dirty: $(git -C "$RUST_ROOT" status --porcelain -- crates Cargo.toml Cargo.lock | wc -l) files)"; fi
 } > "$OUT/env.txt"
 cat "$OUT/env.txt" >&2
 

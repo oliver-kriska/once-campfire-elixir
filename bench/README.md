@@ -31,6 +31,17 @@ release; profiler timings are diagnostic and are never used as benchmark results
 The toolkit benchmark command measures whole-process primitive wall time rather
 than full application throughput.
 
+The matched Elixir architecture review is preserved in
+[`results/elixir-baseline-final-20261004/`](results/elixir-baseline-final-20261004/).
+It compares untouched upstream `b6b82e5` with `a6225d7` on the same two-vCPU host,
+using one pinned server CPU and one pinned load-generator CPU, immutable production
+images, the same populated seed, alternating order, three repetitions, eight-second
+HTTP samples, fifteen-second Cable samples, and five uploads. All response, fanout,
+upload, and job-drain validations passed with zero errors. See the result directory's
+README for exact commands, source/image hashes, profiling evidence, results, and
+semantic caveats. These matched numbers supersede neither the four-language table
+nor figures captured on other hardware.
+
 The completed baseline is in `results/baseline-20261004/`. Profiling evidence and
 changes are described in [TUNING.md](TUNING.md). To reproduce the matched comparison:
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summarize a bench/run results dir: median [min-max] across reps, Rails vs Rust.
+"""Summarize a bench/run results dir: median [min-max] across reps.
 
   bench/report bench/results/<stamp>
 
@@ -24,7 +24,7 @@ for f in sorted(glob.glob(os.path.join(out, "*-*.json"))):
             assert c["ready"] == c["clients"] and c["failed"] == 0 and c["latency"]["complete"] == c["latency"]["messages"] and c["throughput"]["complete"] == c["throughput"]["posted"], f
         runs.setdefault(r["app"], []).append(r)
 identity = runs.pop("rust-identity", None)
-apps = [a for a in ("reference", "elixir", "go", "rust") if a in runs]
+apps = [a for a in ("reference", "baseline", "elixir", "candidate", "go", "rust") if a in runs]
 
 
 def cell(vals):
@@ -50,9 +50,10 @@ def row(name, getter, higher_better, with_identity=False):
         meds[a] = m
         cells.append(c)
     ratio = "–"
-    baseline = "elixir" if "elixir" in meds else "reference"
-    if meds.get(baseline) and meds.get("rust"):
-        x = meds["rust"] / meds[baseline] if higher_better else meds[baseline] / meds["rust"]
+    baseline = "baseline" if "baseline" in meds and "candidate" in meds else "elixir" if "elixir" in meds else "reference"
+    comparison = "candidate" if baseline == "baseline" else "rust"
+    if meds.get(baseline) and meds.get(comparison):
+        x = meds[comparison] / meds[baseline] if higher_better else meds[baseline] / meds[comparison]
         ratio = f"{x:.1f}×"
     extra = ""
     if with_identity:
@@ -75,8 +76,9 @@ def header(title, with_identity=False, note=""):
     if note:
         print(note + "\n")
     more = " Rust, no gzip | vs Rust gzip |" if with_identity else ""
-    advantage = "Rust advantage over Elixir" if "elixir" in apps else "Rust advantage over Rails"
-    print("| Metric | " + " | ".join({"reference":"Rails", "elixir":"Elixir", "go":"Go", "rust":"Rust"}[a] for a in apps) + " | " + advantage + " |" + more)
+    advantage = "Candidate advantage over baseline" if "baseline" in apps and "candidate" in apps else "Rust advantage over Elixir" if "elixir" in apps else "Rust advantage over Rails"
+    labels = {"reference":"Rails", "baseline":"Elixir baseline", "elixir":"Elixir", "candidate":"Elixir candidate", "go":"Go", "rust":"Rust"}
+    print("| Metric | " + " | ".join(labels[a] for a in apps) + " | " + advantage + " |" + more)
     print("|---|" + "---|" * len(apps) + "---|" + ("---|---|" if with_identity else ""))
 
 
@@ -150,11 +152,11 @@ def procmem(n, phase, what):
         p = c["process_memory"][phase]
         roles = p["roles"]
         if what == "app":
-            return roles[{"rust":"campfire","go":"campfire","elixir":"beam","reference":"puma"}[r["app"]]]["peak_pss_mb"]
+            return roles[{"rust":"campfire","go":"campfire","baseline":"beam","elixir":"beam","candidate":"beam","reference":"puma"}[r["app"]]]["peak_pss_mb"]
         if what == "app_anon":
-            return roles[{"rust":"campfire","go":"campfire","elixir":"beam","reference":"puma"}[r["app"]]]["peak_anon_mb"]
+            return roles[{"rust":"campfire","go":"campfire","baseline":"beam","elixir":"beam","candidate":"beam","reference":"puma"}[r["app"]]]["peak_anon_mb"]
         if what == "serving":  # everything that takes part in a cable delivery
-            keys = ["campfire"] if r["app"] in ["rust", "go"] else ["beam", "redis", "helpers", "thrust"] if r["app"] == "elixir" else ["puma", "redis", "thrust"]
+            keys = ["campfire"] if r["app"] in ["rust", "go"] else ["beam", "redis", "helpers", "thrust"] if r["app"] in ["baseline", "elixir", "candidate"] else ["puma", "redis", "thrust"]
             return sum(roles[k]["peak_pss_mb"] for k in keys if k in roles)
         return p["peak_total_pss_mb"]
     return get
