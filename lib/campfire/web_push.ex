@@ -50,7 +50,7 @@ defmodule Campfire.WebPush do
     claims =
       Storage.ordered_json([
         {"aud", audience},
-        {"exp", now + 43200},
+        {"exp", now + 43_200},
         {"sub", "mailto:support@37signals.com"}
       ])
       |> Base.url_encode64(padding: false)

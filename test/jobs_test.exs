@@ -1,6 +1,6 @@
 defmodule Campfire.JobsTest do
   use ExUnit.Case, async: false
-  alias Campfire.{Chat, DB, Worker, Webhooks}
+  alias Campfire.{Chat, DB, Webhooks, Worker}
   @fixture Jason.decode!(File.read!("test/fixtures/seed.json"))
   setup do
     DB.restore_fixture(@fixture)
@@ -59,7 +59,7 @@ defmodule Campfire.JobsTest do
       end)
 
     assert is_map(Webhooks.perform(bot, message))
-    Task.await(task)
+    Task.await(task, 6_000)
     :gen_tcp.close(listen)
     reply = DB.one("SELECT * FROM messages ORDER BY id DESC LIMIT 1")
     assert reply["creator_id"] == bot["id"]

@@ -4,10 +4,11 @@ An Elixir implementation of [ONCE Campfire](https://github.com/basecamp/once-cam
 It keeps the existing SQLite database, storage layout, signed/encrypted cookies and
 Action Cable protocol, so existing installs can retain their data and sessions.
 
-The application runs on Elixir 1.19.5 / OTP 28 with Bandit and Plug. Redis and a
-native Resque-compatible worker handle jobs and broadcasts; the same Thruster
-binary as Rails handles TLS, HTTP/2 and proxy caching. libvips and FFmpeg process
-media. The Rails frontend is preserved, including Turbo and the composer.
+The application runs on Elixir 1.19.5 / OTP 28 with Bandit and Plug. Local OTP
+registries handle broadcasts, ETS holds rendered fragments, and a persistent Redis
+queue feeds the native Resque-compatible worker. The same Thruster binary as Rails
+handles TLS, HTTP/2 and proxy caching. libvips and FFmpeg process media. The Rails
+frontend is preserved, including Turbo and the composer.
 
 ## Running it
 
@@ -43,9 +44,12 @@ docker run -d --name campfire -p 80:80 -p 443:443 \
   installations must retain their storage and secrets.
 - Web Push requires a valid P-256 VAPID key pair in URL-safe Base64. Use your own
   production secrets; `parity/reference.env` contains public test keys.
-- Redis starts inside the container by default. `REDIS_URL` selects an external
-  Redis. The native job worker starts automatically; `bin/jobs` can also run it
-  against the same database, Redis and storage environment.
+- Redis starts inside the container by default with AOF persistence under
+  `/rails/storage/redis`. `REDIS_URL` selects an external Redis, whose durability is
+  then the operator's responsibility. Redis transports jobs only; request fragment
+  caching and single-node Cable fanout remain in the BEAM. The native job worker
+  starts automatically; `bin/jobs` can also run it against the same database, Redis
+  and storage environment.
 - The app listener binds loopback behind Thruster. Forwarded URL headers are
   trusted from the local proxy. The current Dockerfile packages the amd64
   Thruster binary.
@@ -203,6 +207,12 @@ raw differences and the comparison rules are documented in
 Elixir retains Redis and Resque-compatible jobs, while Rust uses integrated
 queues and a different frontend/server implementation. Their actual process
 models, response sizes and compression ratios are recorded with the benchmarks.
+The measured Elixir revision predates the read-only SQLite connection pool and the
+removal of Redis from fragment caching and Cable fanout. Those changes need a new
+matched benchmark before any performance gain is claimed. The current SQLite design
+keeps one serialized writer and uses WAL-backed pooled readers; Redis remains only
+for cross-process job transport. Replacing it entirely would require a durable
+transactional outbox or an explicitly accepted loss of queued work.
 No production cutover has been performed.
 
 ## License

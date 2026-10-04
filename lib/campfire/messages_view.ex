@@ -1,20 +1,24 @@
 defmodule Campfire.MessagesView do
   alias Campfire.{Assets, DB, Mentions, RichText}
   require EEx
+  @csrf_placeholder "<!--campfire-csrf-input-->"
   EEx.function_from_file(:defp, :item, "priv/templates/message.html.eex", [:assigns])
   EEx.function_from_file(:defp, :boost_html, "priv/templates/boost.html.eex", [:assigns])
 
   EEx.function_from_file(:defp, :boosts_html, "priv/templates/boosts.html.eex", [:assigns])
 
   def render(message, base, csrf \\ nil) do
-    Campfire.FragmentCache.record(:message, message, fn ->
-      render_fragment(message, base, csrf)
+    :message
+    |> Campfire.FragmentCache.record(message, fn ->
+      render_fragment(message, base, :placeholder)
     end)
+    |> put_csrf(csrf)
   end
 
   def render_many(messages, base, csrf) do
-    Campfire.FragmentCache.records(:message, messages, &render_fragment(&1, base, csrf))
-    |> Enum.join()
+    :message
+    |> Campfire.FragmentCache.records(messages, &render_fragment(&1, base, :placeholder))
+    |> Enum.map_join(&put_csrf(&1, csrf))
   end
 
   defp render_fragment(message, base, csrf) do
@@ -54,11 +58,7 @@ defmodule Campfire.MessagesView do
       presentation: presentation_message(message, body),
       attachment_actions: attachment_actions(message),
       boosting: render_boosts(message, csrf),
-      csrf_input:
-        if(csrf,
-          do: ~s(<input type="hidden" name="authenticity_token" value="#{csrf}" />),
-          else: ""
-        )
+      csrf_input: csrf_input(csrf)
     )
   rescue
     _ ->
@@ -99,7 +99,9 @@ defmodule Campfire.MessagesView do
   end
 
   def render_boost(boost, csrf \\ nil) do
-    Campfire.FragmentCache.record(:boost, boost, fn -> render_boost_fragment(boost, csrf) end)
+    :boost
+    |> Campfire.FragmentCache.record(boost, fn -> render_boost_fragment(boost, :placeholder) end)
+    |> put_csrf(csrf)
   end
 
   defp render_boost_fragment(boost, csrf) do
@@ -119,13 +121,18 @@ defmodule Campfire.MessagesView do
       content: Assets.html_escape(boost["content"]),
       emoji: all_emoji?(boost["content"]),
       avatar: avatar,
-      csrf_input:
-        if(csrf,
-          do: ~s(<input type="hidden" name="authenticity_token" value="#{csrf}" />),
-          else: ""
-        )
+      csrf_input: csrf_input(csrf)
     )
   end
+
+  defp csrf_input(:placeholder), do: @csrf_placeholder
+  defp csrf_input(nil), do: ""
+
+  defp csrf_input(token),
+    do: ~s(<input type="hidden" name="authenticity_token" value="#{Assets.html_escape(token)}" />)
+
+  defp put_csrf(html, :placeholder), do: html
+  defp put_csrf(html, token), do: String.replace(html, @csrf_placeholder, csrf_input(token))
 
   def presentation_element(message) do
     text =

@@ -1,5 +1,7 @@
 defmodule Campfire.Jobs do
   @moduledoc "Resque-compatible post-commit enqueueing for the native queue consumer."
+  require Logger
+
   def enqueue_push(room, message) do
     enqueue("Room::PushMessageJob", [
       %{"_aj_globalid" => "gid://campfire/#{room["type"]}/#{room["id"]}"},
@@ -35,13 +37,17 @@ defmodule Campfire.Jobs do
         "args" => [job]
       }
 
-      {:ok, _} =
-        Redix.transaction_pipeline(Campfire.Redis, [
-          ["SADD", "resque:queues", "default"],
-          ["RPUSH", "resque:queue:default", Campfire.Rails.json(wrapper)]
-        ])
+      case Redix.transaction_pipeline(Campfire.Redis, [
+             ["SADD", "resque:queues", "default"],
+             ["RPUSH", "resque:queue:default", Campfire.Rails.json(wrapper)]
+           ]) do
+        {:ok, _} ->
+          :ok
 
-      :ok
+        {:error, error} = result ->
+          Logger.error("Campfire job enqueue failed: #{inspect(error)}")
+          result
+      end
     end
   end
 end

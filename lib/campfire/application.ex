@@ -2,13 +2,21 @@ defmodule Campfire.Application do
   use Application
 
   def start(_, _) do
+    database_path = System.get_env("DATABASE_PATH", "var/production.sqlite3")
+
     children = [
       {Registry, keys: :duplicate, name: Campfire.Streams},
       {Registry, keys: :duplicate, name: Campfire.Connections},
       Campfire.RateLimiter,
       Campfire.FragmentCache,
       Campfire.CableFrames,
-      {Campfire.DB, path: System.get_env("DATABASE_PATH", "var/production.sqlite3")}
+      {Campfire.DB, path: database_path},
+      {Exqlite,
+       name: Campfire.DB.ReadPool,
+       database: database_path,
+       mode: :readonly,
+       pool_size: min(System.schedulers_online(), 8),
+       busy_timeout: 5000}
     ]
 
     children = children ++ Campfire.HtmlParser.children()
@@ -21,11 +29,7 @@ defmodule Campfire.Application do
         url ->
           children ++
             [
-              {Redix, {url, [name: Campfire.Redis]}},
-              %{
-                id: Campfire.CableRedis,
-                start: {Redix.PubSub, :start_link, [url, [name: Campfire.CableRedis]]}
-              }
+              {Redix, {url, [name: Campfire.Redis]}}
             ]
       end
 

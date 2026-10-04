@@ -1,6 +1,11 @@
 defmodule Campfire.DB do
   use GenServer
   alias Exqlite.Sqlite3, as: SQL
+
+  defmodule Error do
+    defexception [:reason, message: "SQLite operation failed"]
+  end
+
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts, name: __MODULE__)
 
   def init(opts) do
@@ -51,12 +56,25 @@ defmodule Campfire.DB do
       rescue
         error ->
           SQL.execute(db, "ROLLBACK")
-          raise error
+          reraise error, __STACKTRACE__
       end
     end
   end
 
-  def query(sql, params \\ []), do: GenServer.call(__MODULE__, {:query, sql, params})
+  def query(sql, params \\ []) do
+    if select?(sql) do
+      case Exqlite.query(Campfire.DB.ReadPool, sql, params) do
+        {:ok, %{columns: columns, rows: rows}} ->
+          Enum.map(rows, &Map.new(Enum.zip(columns, &1)))
+
+        {:error, error} ->
+          {:error, sqlite_error(error)}
+      end
+    else
+      GenServer.call(__MODULE__, {:query, sql, params})
+    end
+  end
+
   def one(sql, params \\ []), do: List.first(query(sql, params))
   def transaction(fun), do: GenServer.call(__MODULE__, {:transaction, fun}, 30_000)
 
@@ -101,38 +119,56 @@ defmodule Campfire.DB do
       try do
         run(db, sql, params)
       rescue
-        e -> {:error, e}
+        error in Error -> {:error, error}
       end
 
     {:reply, result, db}
   end
 
   def handle_call({:transaction, fun}, _, db) do
-    :ok = SQL.execute(db, "BEGIN IMMEDIATE")
-
     try do
+      execute!(db, "BEGIN IMMEDIATE")
       result = fun.(fn sql, params -> run(db, sql, params) end)
-      :ok = SQL.execute(db, "COMMIT")
+      execute!(db, "COMMIT")
       {:reply, result, db}
     rescue
-      e ->
+      error in Error ->
         SQL.execute(db, "ROLLBACK")
-        {:reply, {:error, e}, db}
+        {:reply, {:error, error}, db}
+
+      error ->
+        SQL.execute(db, "ROLLBACK")
+        reraise error, __STACKTRACE__
     end
   end
 
   defp run(db, sql, params) do
-    {:ok, stmt} = SQL.prepare(db, sql)
+    stmt = SQL.prepare(db, sql) |> value!()
 
     try do
-      :ok = SQL.bind(stmt, params)
-      {:ok, columns} = SQL.columns(db, stmt)
-      {:ok, rows} = SQL.fetch_all(db, stmt)
+      SQL.bind(stmt, params) |> ok!()
+      columns = SQL.columns(db, stmt) |> value!()
+      rows = SQL.fetch_all(db, stmt) |> value!()
       Enum.map(rows, &Map.new(Enum.zip(columns, &1)))
     after
       SQL.release(db, stmt)
     end
   end
+
+  defp select?(sql), do: sql |> String.trim_leading() |> String.starts_with?("SELECT")
+
+  defp execute!(db, sql), do: SQL.execute(db, sql) |> ok!()
+  defp ok!(:ok), do: :ok
+  defp ok!({:error, reason}), do: sqlite_error!(reason)
+  defp value!({:ok, value}), do: value
+  defp value!({:error, reason}), do: sqlite_error!(reason)
+
+  defp sqlite_error(reason) do
+    message = if is_exception(reason), do: Exception.message(reason), else: inspect(reason)
+    %Error{reason: reason, message: message}
+  end
+
+  defp sqlite_error!(reason), do: raise(sqlite_error(reason))
 
   def terminate(_, db), do: SQL.close(db)
 end
