@@ -8,9 +8,8 @@ defmodule Campfire.FragmentCache do
         :ets.new(__MODULE__, [
           :named_table,
           :set,
-          :public,
-          read_concurrency: true,
-          write_concurrency: true
+          :protected,
+          read_concurrency: true
         ])
 
         :ok
@@ -30,6 +29,13 @@ defmodule Campfire.FragmentCache do
 
   def records(kind, records, render) do
     Enum.map(records, &record(kind, &1, fn -> render.(&1) end))
+  end
+
+  def clear do
+    Agent.get_and_update(__MODULE__, fn state ->
+      :ets.delete_all_objects(__MODULE__)
+      {:ok, state}
+    end)
   end
 
   defp identity(kind, record) do
@@ -52,15 +58,19 @@ defmodule Campfire.FragmentCache do
       [] ->
         html = render.()
 
-        if :ets.info(__MODULE__, :size) >= 4096,
-          do: :ets.delete_all_objects(__MODULE__)
+        Agent.get_and_update(__MODULE__, fn state ->
+          case :ets.lookup(__MODULE__, key) do
+            [{^key, existing}] ->
+              {existing, state}
 
-        if :ets.insert_new(__MODULE__, {key, html}) do
-          html
-        else
-          [{^key, existing}] = :ets.lookup(__MODULE__, key)
-          existing
-        end
+            [] ->
+              if :ets.info(__MODULE__, :size) >= 4096,
+                do: :ets.delete_all_objects(__MODULE__)
+
+              :ets.insert(__MODULE__, {key, html})
+              {html, state}
+          end
+        end)
     end
   end
 end

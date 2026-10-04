@@ -75,7 +75,13 @@ defmodule Campfire.DB do
     end
   end
 
-  def one(sql, params \\ []), do: List.first(query(sql, params))
+  def one(sql, params \\ []) do
+    case query(sql, params) do
+      {:error, _} = error -> error
+      rows -> List.first(rows)
+    end
+  end
+
   def transaction(fun), do: GenServer.call(__MODULE__, {:transaction, fun}, 30_000)
 
   def restore_fixture(fixture),

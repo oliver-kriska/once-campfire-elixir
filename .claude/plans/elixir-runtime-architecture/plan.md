@@ -46,7 +46,7 @@ protocol. Redis compatibility is not itself a requirement.
 - [x] Give the webhook task timeout deterministic headroom.
 - [x] Update Elixir architecture and benchmark caveats without changing other implementations.
 - [x] Run format, warnings-as-errors compile, focused tests, and the full Elixir test suite.
-- [ ] Perform a read-only changed-code review and address accepted findings.
+- [x] Perform a read-only changed-code review and address accepted findings.
 
 ## Verification
 

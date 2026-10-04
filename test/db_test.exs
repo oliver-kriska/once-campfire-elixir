@@ -33,6 +33,7 @@ defmodule Campfire.DBTest do
 
   test "expected SQLite errors are returned without crashing the writer" do
     assert {:error, %DB.Error{}} = DB.query("SELECT * FROM missing_table")
+    assert {:error, %DB.Error{}} = DB.one("SELECT * FROM missing_table")
     assert %{"count" => _} = DB.one("SELECT COUNT(*) AS count FROM messages")
   end
 

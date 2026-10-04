@@ -5,7 +5,7 @@ defmodule Campfire.MessagesViewTest do
 
   setup do
     :ok = DB.restore_fixture(@fixture)
-    :ets.delete_all_objects(FragmentCache)
+    :ok = FragmentCache.clear()
     message = DB.one("SELECT * FROM messages ORDER BY id LIMIT 1")
     %{message: message}
   end
@@ -20,10 +20,43 @@ defmodule Campfire.MessagesViewTest do
     refute second =~ "first-session-token"
   end
 
+  test "cached boosts receive the current session's CSRF token" do
+    boost = DB.one("SELECT * FROM boosts ORDER BY id LIMIT 1")
+    first = MessagesView.render_boost(boost, "first-boost-token")
+    second = MessagesView.render_boost(boost, "second-boost-token")
+
+    assert first =~ ~s(value="first-boost-token")
+    refute first =~ "second-boost-token"
+    assert second =~ ~s(value="second-boost-token")
+    refute second =~ "first-boost-token"
+  end
+
+  test "stored rich text cannot inject the internal CSRF placeholder" do
+    html = MessagesView.presentation(~s(<p>before<!--campfire-csrf-input-->after</p>))
+
+    assert html =~ "beforeafter"
+    refute html =~ "campfire-csrf-input"
+  end
+
   test "broadcast fragments omit CSRF inputs", %{message: message} do
     html = MessagesView.render(message, "https://campfire.test")
 
     refute html =~ "campfire-csrf-input"
     refute html =~ ~s(name="authenticity_token")
+  end
+
+  test "concurrent cache rollover remains bounded and returns every rendered value" do
+    for i <- 1..4096, do: FragmentCache.fetch({:seed, i}, fn -> Integer.to_string(i) end)
+
+    results =
+      1..100
+      |> Task.async_stream(
+        fn i -> FragmentCache.fetch({:rollover, i}, fn -> "rollover-#{i}" end) end,
+        max_concurrency: 100
+      )
+      |> Enum.map(fn {:ok, html} -> html end)
+
+    assert Enum.sort(results) == Enum.sort(Enum.map(1..100, &"rollover-#{&1}"))
+    assert :ets.info(FragmentCache, :size) <= 4096
   end
 end
