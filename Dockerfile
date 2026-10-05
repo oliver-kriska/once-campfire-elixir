@@ -5,6 +5,7 @@ ENV MIX_ENV=prod EXQLITE_USE_SYSTEM=1
 COPY mix.exs mix.lock ./
 COPY deps ./deps
 COPY lib ./lib
+COPY native ./native
 COPY priv ./priv
 COPY vectors/message-etags.json vectors/mime-types.json vectors/route-actions.json vectors/image-etags.json vectors/sounds.json vectors/fragment-digests.json ./vectors/
 RUN mix deps.compile && mix compile --warnings-as-errors && mix release

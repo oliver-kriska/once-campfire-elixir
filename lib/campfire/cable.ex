@@ -19,11 +19,14 @@ defmodule Campfire.Cable do
       |> put_resp_header("sec-websocket-protocol", "actioncable-v1-json")
       |> upgrade_adapter(
         :websocket,
-        {__MODULE__, %{user: user, subscriptions: %{}}, [compress: false]}
+        {__MODULE__, %{user: user, subscriptions: %{}}, websocket_options()}
       )
       |> halt()
     end
   end
+
+  @doc false
+  def websocket_options, do: [compress: false, timeout: :infinity]
 
   @impl true
   def init(%{user: nil} = state),
