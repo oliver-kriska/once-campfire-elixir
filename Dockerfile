@@ -1,5 +1,16 @@
 # Build the pinned native toolchain with Dockerfile.dev first.
 FROM campfire-reference:app AS frontend
+ARG TARGETARCH
+RUN arch="${TARGETARCH:-$(uname -m)}" && \
+    case "$arch" in \
+      amd64|x86_64) gem_arch=x86_64 ;; \
+      arm64|aarch64) gem_arch=aarch64 ;; \
+      *) echo "Unsupported Thruster architecture: $arch" >&2; exit 1 ;; \
+    esac && \
+    gem="/usr/local/bundle/ruby/3.4.0/gems/thruster-0.1.23-${gem_arch}-linux" && \
+    cp "$gem/exe/$gem_arch-linux/thrust" /tmp/thrust && \
+    cp "$gem/MIT-LICENSE" /tmp/THRUSTER-LICENSE
+
 FROM campfire-elixir:toolchain AS build
 ENV MIX_ENV=prod EXQLITE_USE_SYSTEM=1
 COPY mix.exs mix.lock ./
@@ -14,8 +25,8 @@ FROM campfire-elixir:toolchain
 RUN apt-get update && apt-get install -y --no-install-recommends redis-server && rm -rf /var/lib/apt/lists/*
 WORKDIR /campfire
 COPY --from=build /app/_build/prod/rel/campfire ./
-COPY --from=frontend /usr/local/bundle/ruby/3.4.0/gems/thruster-0.1.23-x86_64-linux/exe/x86_64-linux/thrust /usr/local/bin/thrust
-COPY --from=frontend /usr/local/bundle/ruby/3.4.0/gems/thruster-0.1.23-x86_64-linux/MIT-LICENSE /campfire/THRUSTER-LICENSE
+COPY --from=frontend /tmp/thrust /usr/local/bin/thrust
+COPY --from=frontend /tmp/THRUSTER-LICENSE /campfire/THRUSTER-LICENSE
 COPY --from=frontend /rails/public/502.html /campfire/public/502.html
 COPY --chmod=755 hooks /hooks
 COPY --chmod=755 bin/container-start /campfire/bin/container-start
