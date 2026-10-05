@@ -172,7 +172,7 @@ bin/setup-local
 
 `bin/setup-local` initializes the pinned submodule, runs `bin/export-assets --local`,
 compiles the libvips helper into `var/bin`, and fetches Hex dependencies. Mix compiles
-the vendored Gumbo NIF during the first Elixir build. Asset export installs the frozen
+the vendored Gumbo helper during the first Elixir build. Asset export installs the frozen
 Rails bundle and precompiles assets in a disposable copy under `var/`; it never runs
 Bundler or Rails inside `reference/`. The first run needs network access to public
 GitHub, RubyGems and Hex sources. No reference/toolchain Docker images, Redis service
@@ -301,6 +301,14 @@ Each helper limits Gumbo allocations to 256 MiB and enforces a 25-second parse a
 serialization deadline without restricting platform runtime or emulator memory.
 Native allocator failures, assertions, pathological expansion and timeouts terminate
 and replace only that helper; they fail the parser call rather than the application VM.
+Helpers also recycle after returning at least 1 MiB of serialized output to release
+platform allocator high-water memory.
+
+Serialized parser output intentionally remains uncapped so valid large documents keep
+Rails behavior. A compact adversarial fragment can therefore expand into a large port
+packet and decoded BEAM terms; the helper allocation limit does not bound that caller
+memory. This is a known residual resource-exhaustion risk rather than a claimed fix or
+an undocumented compatibility limit.
 
 Elixir retains Redis and Resque-compatible jobs, while Rust uses integrated
 queues and a different frontend/server implementation. Their actual process
