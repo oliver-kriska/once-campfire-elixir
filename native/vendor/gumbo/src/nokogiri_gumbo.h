@@ -726,6 +726,14 @@ typedef struct GumboInternalOptions {
   unsigned int max_tree_depth;
 
   /**
+   * Maximum number of nodes that may be created while building the parse
+   * tree. This bounds malformed markup whose formatting elements expand into
+   * many parser-generated nodes. Set to `0` to disable the limit.
+   * Default: `0`.
+   */
+  unsigned int max_nodes;
+
+  /**
    * The maximum number of errors before the parser stops recording
    * them. This is provided so that if the page is totally borked, we
    * don't completely fill up the errors vector and exhaust memory with
@@ -824,6 +832,12 @@ typedef enum {
    * typically shouldn't be used for other purposes.
    */
   GUMBO_STATUS_TOO_MANY_ATTRIBUTES,
+
+  /**
+   * Indicates that the total parse-tree node limit
+   * (`GumboOptions::max_nodes`) was reached during parsing.
+   */
+  GUMBO_STATUS_TOO_MANY_NODES,
 
   // Currently unused
   GUMBO_STATUS_OUT_OF_MEMORY,

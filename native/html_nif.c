@@ -62,6 +62,7 @@ static ERL_NIF_TERM parse(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]) {
   options.fragment_context = "body";
   options.max_tree_depth = 401;
   options.max_attributes = 400;
+  options.max_nodes = 10000;
   options.max_errors = 0;
   GumboOutput *output = gumbo_parse_with_options(&options, input, html.size);
 
@@ -81,7 +82,6 @@ static int load(ErlNifEnv *env, void **priv, ERL_NIF_TERM info) {
 }
 
 static ErlNifFunc functions[] = {
-  {"parse_nif", 1, parse, 0},
   {"parse_dirty", 1, parse, ERL_NIF_DIRTY_JOB_CPU_BOUND}
 };
 

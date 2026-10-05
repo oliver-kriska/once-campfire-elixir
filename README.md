@@ -292,10 +292,18 @@ The compatibility checks retain explicit rich-text comparison rules:
   the intended empty string. Failed plain-text extraction renders the Rails
   failed-message partial.
 
-The corpus covers 1,058 stored-content cases. The native parser uses unmodified
-Gumbo sources from Rails' Nokogiri 1.19.4. Expected oracle output is retained;
+The corpus covers 1,058 stored-content cases. The native parser uses Gumbo from
+Rails' Nokogiri 1.19.4. Parsing always runs on a dirty CPU scheduler with a local
+10,000-node in-process budget. Documents beyond that budget use the same Gumbo parser
+in a memory-limited helper process, preserving valid large-document behavior without
+exposing the BEAM to unbounded tree expansion. Expected oracle output is retained;
 raw differences and the comparison rules are documented in
 [`plans/richtext-comparison.md`](plans/richtext-comparison.md).
+
+Within the NIF budget, native allocator failures, assertion failures or other C
+defects can still terminate the BEAM. The fallback isolates larger parses and limits
+them to 256 MiB; inputs that exhaust that allowance fail the parser call rather than
+the application VM. Normal corpus content remains on the NIF path.
 
 Elixir retains Redis and Resque-compatible jobs, while Rust uses integrated
 queues and a different frontend/server implementation. Their actual process
