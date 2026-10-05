@@ -1,62 +1,108 @@
-9:C 04 Oct 2026 11:35:15.933 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
-9:C 04 Oct 2026 11:35:15.933 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-9:C 04 Oct 2026 11:35:15.933 * Redis version=8.0.2, bits=64, commit=00000000, modified=0, pid=9, just started
-9:C 04 Oct 2026 11:35:15.933 * Configuration loaded
-9:M 04 Oct 2026 11:35:15.934 * monotonic clock: POSIX clock_gettime
-9:M 04 Oct 2026 11:35:15.934 * Running mode=standalone, port=6379.
-9:M 04 Oct 2026 11:35:15.934 * Server initialized
-9:M 04 Oct 2026 11:35:15.934 * Ready to accept connections tcp
-{"time":"2026-10-04T11:35:16.115057679Z","level":"INFO","msg":"Server started","http":":80","https":":443","tls_domain":["campfire.test"]}
-{"time":"2026-10-04T11:35:16.118839124Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-resque-pool-manager[rails][11]: Resque Pool running in production environment
-{"time":"2026-10-04T11:35:16.226932642Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:16.334776852Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:16.442018874Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:16.550167961Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:16.658132467Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:16.766211828Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:16.874151475Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:16.982086212Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:17.090072791Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:17.197884939Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:17.305792563Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:17.413935368Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-resque-pool-worker[rails][39]: Starting worker 96e48f041522:39:default
-resque-pool-manager[rails][11]: started manager
-resque-pool-manager[rails][11]: Pool contains worker PIDs: [39, 48]
-resque-pool-worker[rails][48]: Starting worker 96e48f041522:48:default
-{"time":"2026-10-04T11:35:17.521753578Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:17.630120832Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:17.738420865Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+9:C 05 Oct 2026 07:37:18.577 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+9:C 05 Oct 2026 07:37:18.578 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+9:C 05 Oct 2026 07:37:18.578 * Redis version=8.0.2, bits=64, commit=00000000, modified=0, pid=9, just started
+9:C 05 Oct 2026 07:37:18.578 * Configuration loaded
+9:M 05 Oct 2026 07:37:18.580 * Increased maximum number of open files to 10032 (it was originally set to 1024).
+9:M 05 Oct 2026 07:37:18.580 * monotonic clock: POSIX clock_gettime
+9:M 05 Oct 2026 07:37:18.587 * Running mode=standalone, port=6379.
+9:M 05 Oct 2026 07:37:18.591 * Server initialized
+9:M 05 Oct 2026 07:37:18.595 * Ready to accept connections tcp
+resque-pool-manager[rails][12]: Resque Pool running in production environment
+{"time":"2026-10-05T07:37:20.225774257Z","level":"INFO","msg":"Server started","http":":80","https":":443","tls_domain":["campfire.test"]}
+{"time":"2026-10-05T07:37:20.268325367Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:20.392311641Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:20.516604546Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:20.637675179Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:20.761724211Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:20.885025306Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:21.005006472Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:21.125611679Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:21.250175702Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:21.373496028Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:21.49813824Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:21.653288218Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:21.778411714Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:21.90384906Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:22.025964811Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:22.153650597Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:22.284665444Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:22.415216847Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:22.552324858Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:22.708064148Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:22.829708426Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:22.961113942Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:23.081735121Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:23.205923834Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:23.333612151Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:23.46319704Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:23.596752675Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:23.727981221Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:23.853881635Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:23.973707201Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:24.097892892Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:24.218410506Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:24.341488975Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:24.465790674Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:24.61256473Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:24.74758614Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:24.875123716Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:25.00430952Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:25.133937382Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:25.258715409Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:25.377759478Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:25.497754345Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:25.638579744Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:25.768414712Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:25.892536578Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:26.016355007Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:26.156659142Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+resque-pool-manager[rails][12]: started manager
+resque-pool-manager[rails][12]: Pool contains worker PIDs: [38]
+resque-pool-worker[rails][38]: Starting worker 891ad5b63d23:38:default
+{"time":"2026-10-05T07:37:26.289422948Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:26.409938452Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:26.540054169Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:26.664494835Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:26.785556238Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:26.905450895Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:27.031392549Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:27.150501676Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:27.272489087Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:27.399344277Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:27.518899406Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
 => Booting Puma
 => Rails 8.2.0.alpha application starting in production 
 => Run `bin/rails server --help` for more startup options
-{"time":"2026-10-04T11:35:17.846521788Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:17.954544107Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:18.062435961Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:18.170914022Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:18.27898175Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:18.386753568Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-[37] Puma starting in cluster mode...
-[37] * Puma version: 7.2.1 ("On The Corner")
-[37] * Ruby version: ruby 3.4.10 (2026-06-30 revision 2b0b7728dc) +YJIT +PRISM [x86_64-linux]
-[37] *  Min threads: 5
-[37] *  Max threads: 5
-[37] *  Environment: production
-[37] *   Master PID: 37
-[37] *      Workers: 1
-[37] *     Restarts: (✔) hot (✔) phased (✖) refork
-[37] * Listening on http://0.0.0.0:3000
-[37] Use Ctrl-C to stop
-[37] ! WARNING: Detected running cluster mode with 1 worker.
-[37] ! Running Puma in cluster mode with a single worker is often a misconfiguration.
-[37] ! Consider running Puma in single-mode (workers = 0) in order to reduce memory overhead.
-[37] ! Set the `silence_single_worker_warning` option to silence this warning message.
-[37] - Worker 0 (PID: 63) booted in 0.0s, phase: 0
-I, [2026-10-04T11:35:18.555907 #63]  INFO -- : [30f5eca0-5ea9-4ef8-8259-a4ace8529b54] Started GET "/rooms/486777696" for 172.17.0.1 at 2026-10-04 11:35:18 +0000
-I, [2026-10-04T11:35:18.556377 #63]  INFO -- : [30f5eca0-5ea9-4ef8-8259-a4ace8529b54] Processing by RoomsController#show as */*
-I, [2026-10-04T11:35:18.556396 #63]  INFO -- : [30f5eca0-5ea9-4ef8-8259-a4ace8529b54]   Parameters: {"id" => "486777696"}
-I, [2026-10-04T11:35:18.557808 #63]  INFO -- : [30f5eca0-5ea9-4ef8-8259-a4ace8529b54] Redirected to https://campfire.test/session/new
-I, [2026-10-04T11:35:18.557867 #63]  INFO -- : [30f5eca0-5ea9-4ef8-8259-a4ace8529b54] Filter chain halted as :require_authentication rendered or redirected
-I, [2026-10-04T11:35:18.557983 #63]  INFO -- : [30f5eca0-5ea9-4ef8-8259-a4ace8529b54] Completed 302 Found in 1ms (ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+{"time":"2026-10-05T07:37:27.649217917Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:27.768527982Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:27.89253781Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:28.016288296Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:28.133509138Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:28.258432001Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:28.380802721Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:28.501389083Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:28.624258895Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:28.745316279Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+[36] Puma starting in cluster mode...
+[36] * Puma version: 7.2.1 ("On The Corner")
+[36] * Ruby version: ruby 3.4.10 (2026-06-30 revision 2b0b7728dc) +YJIT +PRISM [x86_64-linux]
+[36] *  Min threads: 5
+[36] *  Max threads: 5
+[36] *  Environment: production
+[36] *   Master PID: 36
+[36] *      Workers: 1
+[36] *     Restarts: (✔) hot (✔) phased (✖) refork
+[36] * Listening on http://0.0.0.0:3000
+[36] Use Ctrl-C to stop
+[36] ! WARNING: Detected running cluster mode with 1 worker.
+[36] ! Running Puma in cluster mode with a single worker is often a misconfiguration.
+[36] ! Consider running Puma in single-mode (workers = 0) in order to reduce memory overhead.
+[36] ! Set the `silence_single_worker_warning` option to silence this warning message.
+[36] - Worker 0 (PID: 53) booted in 0.0s, phase: 0
+I, [2026-10-05T07:37:29.032375 #53]  INFO -- : [d1900974-a0db-4582-b415-47784a2df80e] Started GET "/rooms/486777696" for 172.17.0.1 at 2026-10-05 07:37:29 +0000
+I, [2026-10-05T07:37:29.033660 #53]  INFO -- : [d1900974-a0db-4582-b415-47784a2df80e] Processing by RoomsController#show as */*
+I, [2026-10-05T07:37:29.033861 #53]  INFO -- : [d1900974-a0db-4582-b415-47784a2df80e]   Parameters: {"id" => "486777696"}
+I, [2026-10-05T07:37:29.036762 #53]  INFO -- : [d1900974-a0db-4582-b415-47784a2df80e] Redirected to https://campfire.test/session/new
+I, [2026-10-05T07:37:29.037093 #53]  INFO -- : [d1900974-a0db-4582-b415-47784a2df80e] Filter chain halted as :require_authentication rendered or redirected
+I, [2026-10-05T07:37:29.037456 #53]  INFO -- : [d1900974-a0db-4582-b415-47784a2df80e] Completed 302 Found in 3ms (ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
 sh: 1: ps: not found

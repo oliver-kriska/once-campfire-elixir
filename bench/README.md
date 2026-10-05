@@ -42,6 +42,28 @@ README for exact commands, source/image hashes, profiling evidence, results, and
 semantic caveats. These matched numbers supersede neither the four-language table
 nor figures captured on other hardware.
 
+### Frozen `7c1ed67` comparison
+
+The October 5 comparison reruns untouched upstream `b6b82e5` against frozen candidate
+`7c1ed67` for four balanced rounds on two native architectures:
+
+- [`results/native-linux-b6b82e5-7c1ed67-20261005-nofile65536/`](results/native-linux-b6b82e5-7c1ed67-20261005-nofile65536/)
+  is a clean native x86_64 Linux run. All response checks and deliveries passed, and
+  every round ended with zero queued or failed jobs. Populated dynamic HTTP throughput
+  regressed 16–47% at concurrency 16; Cable throughput regressed 5–20%.
+- [`results/m4-arm64-b6b82e5-7c1ed67-20261005/`](results/m4-arm64-b6b82e5-7c1ed67-20261005/)
+  retains native ARM64 Linux/OrbStack observations from an M4 Pro. Response, Cable and
+  upload checks passed, but the strict audit is intentionally failed because one
+  candidate round retained 1,125 queued jobs. Unrelated macOS host activity also
+  reached load 29.06. Treat this table as qualified shared-host observations, not a
+  clean or fully drained benchmark.
+
+Both directories preserve all eight rounds, generated reports, raw hidden Cable and
+memory samples, immutable image/runtime identities, fixture hashes and audit receipts.
+The adjacent Linux directory without the `-nofile65536` suffix preserves an excluded
+attempt that correctly aborted when the original 1,024-file descriptor limit prevented
+the 1,000-client Cable case. No cross-platform or universal performance win is claimed.
+
 ### Exact populated seed
 
 The exact seed used by the matched Elixir runs is preserved as

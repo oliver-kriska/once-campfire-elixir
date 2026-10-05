@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "browser": "Chrome/153.0.8010.52",
+  "browser": "Chrome/154.0.8037.97",
   "scope": [
     "login",
     "create_room",

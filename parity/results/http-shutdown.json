@@ -17,7 +17,7 @@
       "valid_subscription_preserved": true,
       "process_exited": true,
       "exit_code": "1",
-      "drain_seconds": 6.297256825026125
+      "drain_seconds": 6.368315714000346
     },
     "candidate": {
       "response": {
@@ -29,7 +29,7 @@
       "valid_subscription_preserved": true,
       "process_exited": true,
       "exit_code": "0",
-      "drain_seconds": 7.0789336250163615
+      "drain_seconds": 6.257085674998962
     }
   }
 }

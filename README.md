@@ -66,13 +66,47 @@ docker run -d --name campfire -p 80:80 -p 443:443 \
   `CAMPFIRE_CABLE_REDIS_BRIDGE=1` temporarily bridges Action Cable broadcasts through
   the shared Redis instance; normal single-node operation should leave it disabled.
 - The app listener binds loopback behind Thruster. Forwarded URL headers are
-  trusted from the local proxy. The current Dockerfile packages the amd64
-  Thruster binary.
+  trusted from the local proxy. The Dockerfile selects the pinned Thruster binary
+  for amd64/x86_64 or arm64/aarch64 release images.
 - The image includes ONCE backup/restore hooks. Fresh installation, backup/restore
   and Rails → Elixir → Rails rollback have passed on disposable volumes. A hosted
   image and automated release publishing are not configured in this repository.
 
 ## Performance
+
+The latest matched comparison freezes upstream baseline `b6b82e5` and candidate
+`7c1ed67` on Elixir 1.20.4 / OTP 29.1.1 with four server and four load-generator
+CPUs, the same populated seed, four balanced rounds, and validated HTTP, Cable and
+upload responses. Results are platform-specific; they do **not** establish a general
+performance improvement.
+
+The native x86_64 Linux run is the authoritative clean benchmark: all eight rounds
+ended with empty job queues and zero failed jobs. At 16 HTTP connections the
+candidate regressed on every populated dynamic route and on Cable fanout:
+
+| Native x86_64 Linux metric | Baseline | Candidate | Change |
+|---|---:|---:|---:|
+| Room page | 305.4 req/s | 255.8 req/s | −16.3% |
+| Messages page | 429.5 req/s | 330.3 req/s | −23.1% |
+| Sidebar | 462.0 req/s | 243.5 req/s | −47.3% |
+| Search | 448.8 req/s | 318.9 req/s | −28.9% |
+| Post a message | 287.6 req/s | 174.1 req/s | −39.5% |
+| Cable, 1,000 clients | 34.85 msg/s | 33.20 msg/s | −4.7% |
+
+Native ARM64 Linux containers under OrbStack on an M4 Pro showed different response
+rates: room, messages, search and posting improved at 16 connections, while sidebar
+regressed 6.8%. Those are qualified shared-workstation observations, not a clean
+benchmark result: unrelated macOS activity drove host load as high as 29.06, and one
+candidate round retained 1,125 queued jobs. All rounds remain in the evidence; none
+was removed or replaced after seeing its result.
+
+See the [clean Linux report](bench/results/native-linux-b6b82e5-7c1ed67-20261005-nofile65536/README.md)
+and [qualified M4 report](bench/results/m4-arm64-b6b82e5-7c1ed67-20261005/README.md)
+for medians, complete ranges, raw interleaved records, immutable image/runtime
+identities, fixture provenance and limitations. No cause for the cross-platform
+performance difference was isolated.
+
+### October 4 four-language comparison
 
 Production images, the same populated seed and four pinned hardware threads per app
 on an AMD Ryzen AI MAX+ 395. These are medians of two runs per version on October 4,
@@ -233,7 +267,7 @@ bin/rails-to-elixir doctor
 bin/parity-services stop
 ```
 
-The complete verified run passes **65 gates and 1,896 tests**, including actual
+The complete verified run passes **65 gates and 1,929 tests**, including actual
 Chromium flows, all-table/FTS/storage mutation snapshots, injected transaction
 failures, media operations, cross-runtime Cable delivery and session revocation,
 worker claims/failures/drain, webhook replies and encrypted HTTPS push delivery,
@@ -256,8 +290,9 @@ PARITY_RUNTIME=docker parity/bin/reference build
 ```
 
 This produces `campfire-reference:app` and the parity wrapper
-`campfire-reference:latest`. On Apple Silicon, run the benchmark's documented
-`linux/amd64` environment consistently rather than mixing native and emulated images.
+`campfire-reference:latest`. On Apple Silicon, use architecture-matched ARM64 images
+and the recorded ARM64 media oracle, or run the benchmark's documented `linux/amd64`
+environment consistently; do not mix native and emulated images within a comparison.
 Live gates reset their fixture data and must run sequentially. Unit tests disable the
 HTTP server and external job adapter.
 
@@ -313,12 +348,12 @@ an undocumented compatibility limit.
 Elixir retains Redis and Resque-compatible jobs, while Rust uses integrated
 queues and a different frontend/server implementation. Their actual process
 models, response sizes and compression ratios are recorded with the benchmarks.
-The measured Elixir revision predates the read-only SQLite connection pool and the
-removal of Redis from fragment caching and Cable fanout. Those changes need a new
-matched benchmark before any performance gain is claimed. The current SQLite design
-keeps one serialized writer and uses WAL-backed pooled readers; Redis remains only
-for cross-process job transport. Replacing it entirely would require a durable
-transactional outbox or an explicitly accepted loss of queued work.
+The current SQLite design keeps one serialized writer and uses WAL-backed pooled
+readers; Redis remains only for cross-process job transport. A new matched benchmark
+of those changes is recorded above: it regressed dynamic HTTP and Cable throughput on
+native x86_64 Linux, while the qualified M4 observations were mixed and failed the
+fully-drained-job audit. Replacing Redis entirely would require a durable transactional
+outbox or an explicitly accepted loss of queued work.
 No production cutover has been performed.
 
 ## License

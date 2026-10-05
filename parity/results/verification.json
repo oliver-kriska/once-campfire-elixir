@@ -1,9 +1,9 @@
 {
   "passed": true,
   "complete_run": true,
-  "source_digest": "76dd233a90d7c99455301a744bc292f3fcc184a25ee75b2da21eaa1d54b15b39",
+  "source_digest": "41b6eca0b581d7de06e82019648c4f71d316bcc552eaeb1edd8461223e6849b4",
   "reference_sha": "90b330024dec3e757c79b6a7e6568f93da8e3148",
-  "started_at": "2026-10-04T22:56:02.821295+00:00",
+  "started_at": "2026-10-05T07:19:50.019137+00:00",
   "gates": [
     {
       "gate": "format",
@@ -14,7 +14,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.403,
+      "seconds": 1.279,
       "log": "parity/verify-format.log"
     },
     {
@@ -26,7 +26,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.218,
+      "seconds": 1.324,
       "log": "parity/verify-compile.log"
     },
     {
@@ -38,7 +38,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 112.768,
+      "seconds": 112.278,
       "log": "parity/verify-unit.log"
     },
     {
@@ -53,7 +53,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 9.057,
+      "seconds": 8.865,
       "log": "parity/verify-toolkit.log"
     },
     {
@@ -65,7 +65,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 6.217,
+      "seconds": 6.051,
       "log": "parity/verify-seed_reference.log"
     },
     {
@@ -77,7 +77,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 2.445,
+      "seconds": 3.184,
       "log": "parity/verify-seed_candidate.log"
     },
     {
@@ -91,7 +91,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 53.319,
+      "seconds": 51.41,
       "log": "parity/verify-http.log"
     },
     {
@@ -105,7 +105,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 10.05,
+      "seconds": 7.135,
       "log": "parity/verify-mutation.log"
     },
     {
@@ -116,7 +116,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 10.573,
+      "seconds": 8.339,
       "log": "parity/verify-sessions.log"
     },
     {
@@ -127,7 +127,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 7.502,
+      "seconds": 7.519,
       "log": "parity/verify-first_run.log"
     },
     {
@@ -138,7 +138,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 17.473,
+      "seconds": 16.99,
       "log": "parity/verify-signup.log"
     },
     {
@@ -149,7 +149,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 13.128,
+      "seconds": 13.267,
       "log": "parity/verify-session_lifecycle.log"
     },
     {
@@ -160,7 +160,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 9.681,
+      "seconds": 10.221,
       "log": "parity/verify-request_failures.log"
     },
     {
@@ -171,7 +171,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 6.166,
+      "seconds": 6.236,
       "log": "parity/verify-proxy_context.log"
     },
     {
@@ -182,7 +182,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 7.378,
+      "seconds": 6.556,
       "log": "parity/verify-route_errors.log"
     },
     {
@@ -193,7 +193,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 11.186,
+      "seconds": 11.323,
       "log": "parity/verify-format_probe.log"
     },
     {
@@ -204,7 +204,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 10.854,
+      "seconds": 10.295,
       "log": "parity/verify-bot_formats.log"
     },
     {
@@ -215,7 +215,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 6.986,
+      "seconds": 6.645,
       "log": "parity/verify-http_headers.log"
     },
     {
@@ -226,7 +226,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 6.404,
+      "seconds": 6.052,
       "log": "parity/verify-public_files.log"
     },
     {
@@ -237,7 +237,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 7.19,
+      "seconds": 6.431,
       "log": "parity/verify-assets.log"
     },
     {
@@ -248,7 +248,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 9.4,
+      "seconds": 8.664,
       "log": "parity/verify-http_compression.log"
     },
     {
@@ -259,7 +259,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 9.303,
+      "seconds": 8.583,
       "log": "parity/verify-image_headers.log"
     },
     {
@@ -270,7 +270,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 8.104,
+      "seconds": 7.13,
       "log": "parity/verify-errors.log"
     },
     {
@@ -281,7 +281,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 8.185,
+      "seconds": 9.49,
       "log": "parity/verify-navigation.log"
     },
     {
@@ -292,7 +292,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 11.707,
+      "seconds": 9.865,
       "log": "parity/verify-browser_pages.log"
     },
     {
@@ -303,7 +303,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 9.442,
+      "seconds": 7.48,
       "log": "parity/verify-welcome.log"
     },
     {
@@ -314,7 +314,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 9.115,
+      "seconds": 7.721,
       "log": "parity/verify-account_page.log"
     },
     {
@@ -325,7 +325,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 8.77,
+      "seconds": 7.774,
       "log": "parity/verify-account_users.log"
     },
     {
@@ -336,7 +336,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 8.855,
+      "seconds": 7.641,
       "log": "parity/verify-settings_pages.log"
     },
     {
@@ -347,7 +347,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 10.322,
+      "seconds": 8.73,
       "log": "parity/verify-profile_pages.log"
     },
     {
@@ -358,7 +358,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 8.716,
+      "seconds": 8.446,
       "log": "parity/verify-user_pages.log"
     },
     {
@@ -369,7 +369,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 8.44,
+      "seconds": 9.583,
       "log": "parity/verify-push_subscription_pages.log"
     },
     {
@@ -380,7 +380,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 10.081,
+      "seconds": 9.093,
       "log": "parity/verify-room_forms.log"
     },
     {
@@ -391,7 +391,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 9.704,
+      "seconds": 9.246,
       "log": "parity/verify-room_page.log"
     },
     {
@@ -402,7 +402,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 7.135,
+      "seconds": 7.583,
       "log": "parity/verify-boost_pages.log"
     },
     {
@@ -413,7 +413,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 9.129,
+      "seconds": 7.715,
       "log": "parity/verify-messages.log"
     },
     {
@@ -424,7 +424,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 10.57,
+      "seconds": 8.063,
       "log": "parity/verify-message_cache.log"
     },
     {
@@ -435,7 +435,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 7.922,
+      "seconds": 7.096,
       "log": "parity/verify-administration.log"
     },
     {
@@ -446,7 +446,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 7.637,
+      "seconds": 6.971,
       "log": "parity/verify-mutation_edges.log"
     },
     {
@@ -457,7 +457,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 8.245,
+      "seconds": 8.876,
       "log": "parity/verify-message_scalars.log"
     },
     {
@@ -468,7 +468,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 13.059,
+      "seconds": 12.208,
       "log": "parity/verify-transaction_failures.log"
     },
     {
@@ -479,7 +479,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 68.096,
+      "seconds": 70.583,
       "log": "parity/verify-message_attachments.log"
     },
     {
@@ -490,7 +490,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 6.962,
+      "seconds": 6.626,
       "log": "parity/verify-storage.log"
     },
     {
@@ -501,7 +501,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 20.585,
+      "seconds": 18.938,
       "log": "parity/verify-media.log"
     },
     {
@@ -512,7 +512,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 20.743,
+      "seconds": 20.996,
       "log": "parity/verify-attachments.log"
     },
     {
@@ -523,7 +523,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 12.483,
+      "seconds": 12.779,
       "log": "parity/verify-branding.log"
     },
     {
@@ -534,7 +534,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 18.532,
+      "seconds": 18.906,
       "log": "parity/verify-room_deletion.log"
     },
     {
@@ -545,7 +545,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 6.75,
+      "seconds": 6.888,
       "log": "parity/verify-cable.log"
     },
     {
@@ -556,7 +556,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 6.735,
+      "seconds": 6.774,
       "log": "parity/verify-cable_interop.log"
     },
     {
@@ -567,7 +567,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 8.294,
+      "seconds": 7.703,
       "log": "parity/verify-message_broadcasts.log"
     },
     {
@@ -578,7 +578,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 7.875,
+      "seconds": 9.748,
       "log": "parity/verify-room_broadcasts.log"
     },
     {
@@ -589,7 +589,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 15.557,
+      "seconds": 15.326,
       "log": "parity/verify-user_lifecycle.log"
     },
     {
@@ -600,7 +600,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 13.245,
+      "seconds": 13.309,
       "log": "parity/verify-jobs.log"
     },
     {
@@ -611,7 +611,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 23.193,
+      "seconds": 27.645,
       "log": "parity/verify-network_protocol.log"
     },
     {
@@ -622,7 +622,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 153.734,
+      "seconds": 156.568,
       "log": "parity/verify-webhook_replies.log"
     },
     {
@@ -633,7 +633,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 31.759,
+      "seconds": 30.523,
       "log": "parity/verify-worker_lifecycle.log"
     },
     {
@@ -644,7 +644,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 48.706,
+      "seconds": 50.728,
       "log": "parity/verify-push_delivery.log"
     },
     {
@@ -655,7 +655,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 21.185,
+      "seconds": 20.271,
       "log": "parity/verify-browser_flows.log"
     },
     {
@@ -666,7 +666,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 8.368,
+      "seconds": 7.281,
       "log": "parity/verify-qr.log"
     },
     {
@@ -676,7 +676,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 4.887,
+      "seconds": 66.696,
       "log": "parity/verify-release.log"
     },
     {
@@ -687,7 +687,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 14.053,
+      "seconds": 14.847,
       "log": "parity/verify-frontend.log"
     },
     {
@@ -698,7 +698,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 19.258,
+      "seconds": 19.441,
       "log": "parity/verify-fresh_install.log"
     },
     {
@@ -709,7 +709,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 2.131,
+      "seconds": 2.671,
       "log": "parity/verify-release_smoke.log"
     },
     {
@@ -720,7 +720,7 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 25.248,
+      "seconds": 23.442,
       "log": "parity/verify-http_shutdown.log"
     },
     {
@@ -731,10 +731,10 @@
       ],
       "passed": true,
       "exit_code": 0,
-      "seconds": 25.459,
+      "seconds": 24.298,
       "log": "parity/verify-rollback.log"
     }
   ],
-  "finished_at": "2026-10-04T23:14:11.658815+00:00",
+  "finished_at": "2026-10-05T07:38:42.478150+00:00",
   "source_unchanged": true
 }

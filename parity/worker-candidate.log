@@ -1,5 +1,5 @@
 
-11:34:19.591 [error] Campfire job failed: ActiveJob deserialization failed: gid://campfire/Rooms::Open/9999999999
+07:34:44.934 [error] Campfire job failed: ActiveJob deserialization failed: gid://campfire/Rooms::Open/9999999999
 
-11:34:20.171 [notice] SIGTERM received - shutting down
+07:34:46.332 [notice] SIGTERM received - shutting down
 

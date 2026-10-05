@@ -1,8 +1,19 @@
-7:C 04 Oct 2026 11:35:19.151 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
-{"time":"2026-10-04T11:35:19.153300817Z","level":"INFO","msg":"Server started","http":":80","https":":443","tls_domain":["campfire.test"]}
-{"time":"2026-10-04T11:35:19.156396529Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:19.263835806Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:19.372091232Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
-{"time":"2026-10-04T11:35:19.480144201Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+8:C 05 Oct 2026 07:37:29.984 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+{"time":"2026-10-05T07:37:29.987251405Z","level":"INFO","msg":"Server started","http":":80","https":":443","tls_domain":["campfire.test"]}
+{"time":"2026-10-05T07:37:30.091540543Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:30.209952814Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:30.329680443Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:30.449943385Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:30.586052715Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:30.711003634Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:30.82958795Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:30.947868501Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:31.0701941Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:31.193733052Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:31.313789533Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:31.4360785Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:31.572351414Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:31.694862343Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
+{"time":"2026-10-05T07:37:31.812682352Z","level":"INFO","msg":"Unable to proxy request","path":"/up","error":"dial tcp [::1]:3000: connect: connection refused"}
 
-11:35:19.542 [info] Running Campfire.Endpoint with Bandit 1.12.5 at 127.0.0.1:3000 (http)
+07:37:31.834 [info] Running Campfire.Endpoint with Bandit 1.12.5 at 127.0.0.1:3000 (http)
