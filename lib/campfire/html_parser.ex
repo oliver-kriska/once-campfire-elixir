@@ -23,7 +23,10 @@ defmodule Campfire.HtmlParser do
   end
 
   @impl true
-  def init(_index), do: {:ok, open_port()}
+  def init(_index) do
+    Process.flag(:trap_exit, true)
+    {:ok, open_port()}
+  end
 
   @impl true
   def handle_call({:parse, html}, _from, port) do
@@ -34,6 +37,10 @@ defmodule Campfire.HtmlParser do
 
         {^port, {:exit_status, status}} ->
           message = "isolated HTML parser exited with status #{status}"
+          {:reply, {:error, message}, open_port()}
+
+        {:EXIT, ^port, reason} ->
+          message = "isolated HTML parser exited: #{inspect(reason)}"
           {:reply, {:error, message}, open_port()}
       after
         27_000 ->
@@ -49,6 +56,11 @@ defmodule Campfire.HtmlParser do
   def handle_info({port, {:exit_status, _status}}, port), do: {:noreply, open_port()}
 
   def handle_info({port, {:exit_status, _status}}, current) when is_port(port),
+    do: {:noreply, current}
+
+  def handle_info({:EXIT, port, _reason}, port), do: {:noreply, open_port()}
+
+  def handle_info({:EXIT, port, _reason}, current) when is_port(port),
     do: {:noreply, current}
 
   @impl true

@@ -61,6 +61,45 @@ defmodule Campfire.HtmlParserTest do
     assert Campfire.HtmlParser.parse("<p>alive</p>") == [{"p", [], ["alive"]}]
   end
 
+  test "an abnormal linked port exit returns an error and replaces the helper" do
+    worker = String.to_existing_atom("Elixir.Campfire.HtmlParser.#{:erlang.phash2(self(), 4)}")
+    worker_pid = Process.whereis(worker)
+    broken_port = open_port_with_closed_input()
+
+    assert_receive {^broken_port, {:data, "ready"}}, 1_000
+    assert Port.connect(broken_port, worker_pid)
+    Process.unlink(broken_port)
+
+    :sys.replace_state(worker, fn port ->
+      Process.link(broken_port)
+      Port.close(port)
+      broken_port
+    end)
+
+    assert_raise ArgumentError, ~r/isolated HTML parser exited/, fn ->
+      Campfire.HtmlParser.parse("<p>broken pipe</p>")
+    end
+
+    replacement =
+      await_replacement(worker, broken_port, System.monotonic_time(:millisecond) + 5_000)
+
+    assert is_port(replacement)
+    assert Process.whereis(worker) == worker_pid
+    assert Campfire.HtmlParser.parse("<p>alive</p>") == [{"p", [], ["alive"]}]
+  end
+
+  defp open_port_with_closed_input do
+    executable = System.find_executable("sh")
+    script = ~S(exec 0<&-; printf '\000\000\000\005ready'; sleep 30)
+
+    Port.open({:spawn_executable, String.to_charlist(executable)}, [
+      :binary,
+      {:packet, 4},
+      :exit_status,
+      args: [~c"-c", String.to_charlist(script)]
+    ])
+  end
+
   defp await_replacement(worker, old_port, deadline) do
     case :sys.get_state(worker) do
       ^old_port ->
