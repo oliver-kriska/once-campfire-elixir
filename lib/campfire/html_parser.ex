@@ -2,6 +2,7 @@ defmodule Campfire.HtmlParser do
   @moduledoc "Bounded, fault-isolated Gumbo parsers pinned to the Rails reference's Nokogiri version."
   use GenServer
   @workers 4
+  @recycle_output_bytes 1_048_576
 
   def children do
     for index <- 0..(@workers - 1) do
@@ -26,21 +27,29 @@ defmodule Campfire.HtmlParser do
 
   @impl true
   def handle_call({:parse, html}, _from, port) do
-    true = Port.command(port, html)
+    if port_command(port, html) do
+      receive do
+        {^port, {:data, data}} ->
+          {:reply, Jason.decode!(data), recycle_after_large_output(port, data)}
 
-    receive do
-      {^port, {:data, data}} ->
-        {:reply, Jason.decode!(data), port}
-
-      {^port, {:exit_status, status}} ->
-        message = "isolated HTML parser exited with status #{status}"
-        {:reply, {:error, message}, open_port()}
-    after
-      27_000 ->
-        Port.close(port)
-        {:reply, {:error, "isolated HTML parser timed out"}, open_port()}
+        {^port, {:exit_status, status}} ->
+          message = "isolated HTML parser exited with status #{status}"
+          {:reply, {:error, message}, open_port()}
+      after
+        27_000 ->
+          Port.close(port)
+          {:reply, {:error, "isolated HTML parser timed out"}, open_port()}
+      end
+    else
+      {:reply, {:error, "isolated HTML parser exited before parsing"}, open_port()}
     end
   end
+
+  @impl true
+  def handle_info({port, {:exit_status, _status}}, port), do: {:noreply, open_port()}
+
+  def handle_info({port, {:exit_status, _status}}, current) when is_port(port),
+    do: {:noreply, current}
 
   @impl true
   def terminate(_, port) do
@@ -56,6 +65,19 @@ defmodule Campfire.HtmlParser do
       :exit_status
     ])
   end
+
+  defp port_command(port, html) do
+    Port.command(port, html)
+  rescue
+    ArgumentError -> false
+  end
+
+  defp recycle_after_large_output(port, data) when byte_size(data) >= @recycle_output_bytes do
+    Port.close(port)
+    open_port()
+  end
+
+  defp recycle_after_large_output(port, _data), do: port
 
   defp name(index), do: String.to_atom("Elixir.Campfire.HtmlParser.#{index}")
 
