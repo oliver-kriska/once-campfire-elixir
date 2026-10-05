@@ -91,9 +91,7 @@ int main(void) {
     options.max_errors = 0;
     GumboOutput *output = gumbo_parse_with_options(&options, input, length);
 
-    char *data = NULL;
-    size_t size = 0;
-    FILE *file = open_memstream(&data, &size);
+    FILE *file = tmpfile();
     if (!file) return 2;
     if (output->status != GUMBO_STATUS_OK) {
       fputs("{\"error\":", file);
@@ -102,17 +100,25 @@ int main(void) {
     } else {
       children(file, &output->root->v.element.children);
     }
-    fclose(file);
     gumbo_destroy_output(output);
     free(input);
 
+    long offset = ftell(file);
+    if (offset < 0 || (unsigned long)offset > UINT32_MAX || fseek(file, 0, SEEK_SET) != 0) return 2;
+    uint32_t size = (uint32_t)offset;
     header[0] = (size >> 24) & 255;
     header[1] = (size >> 16) & 255;
     header[2] = (size >> 8) & 255;
     header[3] = size & 255;
-    if (fwrite(header, 1, 4, stdout) != 4 || fwrite(data, 1, size, stdout) != size) return 2;
+    if (fwrite(header, 1, 4, stdout) != 4) return 2;
+    char data[16 * 1024];
+    size_t bytes;
+    while ((bytes = fread(data, 1, sizeof(data), file)) > 0) {
+      if (fwrite(data, 1, bytes, stdout) != bytes) return 2;
+    }
+    if (ferror(file)) return 2;
     fflush(stdout);
-    free(data);
+    fclose(file);
   }
   return ferror(stdin) ? 2 : 0;
 }
