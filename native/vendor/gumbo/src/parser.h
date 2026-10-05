@@ -23,10 +23,6 @@ typedef struct GumboInternalParser {
   // Output for the parse.
   struct GumboInternalOutput* _output;
 
-  // Number of output nodes allocated during this parse. Used to stop
-  // pathological tree expansion before it exhausts process memory.
-  unsigned int _node_count;
-
   // The internal tokenizer state, defined as a pointer to avoid a cyclic
   // dependency on html5tokenizer.h. The main parse routine is responsible for
   // initializing this on parse start, and destroying it on parse end.

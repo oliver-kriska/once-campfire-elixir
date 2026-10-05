@@ -1,64 +1,67 @@
 defmodule Campfire.HtmlParser do
-  @moduledoc """
-  Native Gumbo HTML parsing pinned to the Rails reference's Nokogiri version.
+  @moduledoc "Bounded, fault-isolated Gumbo parsers pinned to the Rails reference's Nokogiri version."
+  use GenServer
+  @workers 4
 
-  Parsing uses a dirty CPU scheduler because HTML input size does not bound
-  Gumbo's tree-construction work.
-  """
-  @on_load :load
-
-  def load do
-    :campfire
-    |> :code.priv_dir()
-    |> Path.join("native/campfire_html")
-    |> String.to_charlist()
-    |> :erlang.load_nif(0)
-  end
-
-  def parse(html) do
-    case parse_dirty(html) do
-      {:error, "Document node limit exceeded"} -> parse_isolated(html)
-      {:error, message} -> raise ArgumentError, message
-      nodes -> nodes
+  def children do
+    for index <- 0..(@workers - 1) do
+      %{id: {__MODULE__, index}, start: {__MODULE__, :start_link, [index]}}
     end
   end
 
-  defp parse_isolated(html) do
-    executable = Path.join(:code.priv_dir(:campfire), "native/campfire-html")
+  def start_link(index), do: GenServer.start_link(__MODULE__, index, name: name(index))
 
-    port =
-      Port.open({:spawn_executable, String.to_charlist(executable)}, [
-        :binary,
-        {:packet, 4},
-        :exit_status
-      ])
+  def parse(html) do
+    index = :erlang.phash2(self(), @workers)
 
+    case GenServer.call(name(index), {:parse, html}, 30_000) do
+      {:error, message} -> raise ArgumentError, message
+      %{"error" => message} -> raise ArgumentError, message
+      nodes -> Enum.map(nodes, &decode_node/1)
+    end
+  end
+
+  @impl true
+  def init(_index), do: {:ok, open_port()}
+
+  @impl true
+  def handle_call({:parse, html}, _from, port) do
     true = Port.command(port, html)
 
     receive do
       {^port, {:data, data}} ->
-        Port.close(port)
-
-        case Jason.decode!(data) do
-          %{"error" => message} -> raise ArgumentError, message
-          nodes -> Enum.map(nodes, &decode_node/1)
-        end
+        {:reply, Jason.decode!(data), port}
 
       {^port, {:exit_status, status}} ->
-        raise ArgumentError, "isolated HTML parser exited with status #{status}"
+        message = "isolated HTML parser exited with status #{status}"
+        {:reply, {:error, message}, open_port()}
     after
-      25_000 ->
+      27_000 ->
         Port.close(port)
-        raise ArgumentError, "isolated HTML parser timed out"
+        {:reply, {:error, "isolated HTML parser timed out"}, open_port()}
     end
   end
+
+  @impl true
+  def terminate(_, port) do
+    if Port.info(port), do: Port.close(port)
+  end
+
+  defp open_port do
+    executable = Path.join(:code.priv_dir(:campfire), "native/campfire-html")
+
+    Port.open({:spawn_executable, String.to_charlist(executable)}, [
+      :binary,
+      {:packet, 4},
+      :exit_status
+    ])
+  end
+
+  defp name(index), do: String.to_atom("Elixir.Campfire.HtmlParser.#{index}")
 
   defp decode_node([tag, attrs, children]),
     do: {tag, Enum.map(attrs, &List.to_tuple/1), Enum.map(children, &decode_node/1)}
 
   defp decode_node(%{"comment" => text}), do: {:comment, text}
   defp decode_node(text) when is_binary(text), do: text
-
-  @doc false
-  def parse_dirty(_html), do: :erlang.nif_error(:not_loaded)
 end

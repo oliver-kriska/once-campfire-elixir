@@ -50,7 +50,6 @@ const GumboOptions kGumboDefaultOptions = {
   .stop_on_first_error = false,
   .max_attributes = 400,
   .max_tree_depth = 400,
-  .max_nodes = 0,
   .max_errors = -1,
   .fragment_context = NULL,
   .fragment_namespace = GUMBO_NAMESPACE_HTML,
@@ -310,9 +309,8 @@ static void set_frameset_not_ok(GumboParser* parser) {
   parser->_parser_state->_frameset_ok = false;
 }
 
-static GumboNode* create_node(GumboParser* parser, GumboNodeType type) {
+static GumboNode* create_node(GumboNodeType type) {
   GumboNode* node = gumbo_alloc(sizeof(GumboNode));
-  ++parser->_node_count;
   node->parent = NULL;
   node->index_within_parent = -1;
   node->type = type;
@@ -320,8 +318,8 @@ static GumboNode* create_node(GumboParser* parser, GumboNodeType type) {
   return node;
 }
 
-static GumboNode* new_document_node(GumboParser* parser) {
-  GumboNode* document_node = create_node(parser, GUMBO_NODE_DOCUMENT);
+static GumboNode* new_document_node(void) {
+  GumboNode* document_node = create_node(GUMBO_NODE_DOCUMENT);
   document_node->parse_flags = GUMBO_INSERTION_BY_PARSER;
   gumbo_vector_init(1, &document_node->v.document.children);
 
@@ -337,10 +335,9 @@ static GumboNode* new_document_node(GumboParser* parser) {
 }
 
 static void output_init(GumboParser* parser) {
-  parser->_node_count = 0;
   GumboOutput* output = gumbo_alloc(sizeof(GumboOutput));
   output->root = NULL;
-  output->document = new_document_node(parser);
+  output->document = new_document_node();
   output->document_error = false;
   output->status = GUMBO_STATUS_OK;
   parser->_output = output;
@@ -960,7 +957,7 @@ static void maybe_flush_text_node_buffer(GumboParser* parser) {
     || buffer_state->_type == GUMBO_NODE_TEXT
     || buffer_state->_type == GUMBO_NODE_CDATA
   );
-  GumboNode* text_node = create_node(parser, buffer_state->_type);
+  GumboNode* text_node = create_node(buffer_state->_type);
   GumboText* text_node_data = &text_node->v.text;
   text_node_data->text = gumbo_string_buffer_to_string(&buffer_state->_buffer);
   text_node_data->original_text.data = buffer_state->_start_original_text;
@@ -1054,7 +1051,7 @@ static void append_comment_node (
   const GumboToken* token
 ) {
   maybe_flush_text_node_buffer(parser);
-  GumboNode* comment = create_node(parser, GUMBO_NODE_COMMENT);
+  GumboNode* comment = create_node(GUMBO_NODE_COMMENT);
   comment->type = GUMBO_NODE_COMMENT;
   comment->parse_flags = GUMBO_INSERTION_NORMAL;
   comment->v.text.text = token->v.text;
@@ -1094,7 +1091,7 @@ static GumboNode* create_element(GumboParser* parser, GumboTag tag) {
   // XXX: This will fail for creating fragments with an element with tag
   // GUMBO_TAG_UNKNOWN
   assert(tag != GUMBO_TAG_UNKNOWN);
-  GumboNode* node = create_node(parser, GUMBO_NODE_ELEMENT);
+  GumboNode* node = create_node(GUMBO_NODE_ELEMENT);
   GumboElement* element = &node->v.element;
   gumbo_vector_init(1, &element->children);
   gumbo_vector_init(0, &element->attributes);
@@ -1113,7 +1110,6 @@ static GumboNode* create_element(GumboParser* parser, GumboTag tag) {
 
 // Constructs an element from the given start tag token.
 static GumboNode* create_element_from_token (
-  GumboParser* parser,
   GumboToken* token,
   GumboNamespaceEnum tag_namespace
 ) {
@@ -1129,7 +1125,7 @@ static GumboNode* create_element_from_token (
     : GUMBO_NODE_ELEMENT
   ;
 
-  GumboNode* node = create_node(parser, type);
+  GumboNode* node = create_node(type);
   GumboElement* element = &node->v.element;
   gumbo_vector_init(1, &element->children);
   element->attributes = start_tag->attributes;
@@ -1183,7 +1179,7 @@ static GumboNode* insert_element_from_token (
   GumboParser* parser,
   GumboToken* token
 ) {
-  GumboNode* element = create_element_from_token(parser, token, GUMBO_NAMESPACE_HTML);
+  GumboNode* element = create_element_from_token(token, GUMBO_NAMESPACE_HTML);
   insert_element(parser, element, false);
   gumbo_debug (
     "Inserting <%s> element (@%p) from token.\n",
@@ -1220,7 +1216,7 @@ static GumboNode* insert_foreign_element (
   GumboNamespaceEnum tag_namespace
 ) {
   assert(token->type == GUMBO_TOKEN_START_TAG);
-  GumboNode* element = create_element_from_token(parser, token, tag_namespace);
+  GumboNode* element = create_element_from_token(token, tag_namespace);
   insert_element(parser, element, false);
   gumbo_debug (
     "Inserting <%s> foreign element (@%p).\n",
@@ -1392,12 +1388,11 @@ static bool is_open_element(const GumboParser* parser, const GumboNode* node) {
 // clone shares no structure with the original node: all owned strings and
 // values are fresh copies.
 static GumboNode* clone_node (
-  GumboParser* parser,
   GumboNode* node,
   GumboParseFlags reason
 ) {
   assert(node->type == GUMBO_NODE_ELEMENT || node->type == GUMBO_NODE_TEMPLATE);
-  GumboNode* new_node = create_node(parser, node->type);
+  GumboNode* new_node = gumbo_alloc(sizeof(GumboNode));
   *new_node = *node;
   new_node->parent = NULL;
   new_node->index_within_parent = -1;
@@ -1469,7 +1464,6 @@ static void reconstruct_active_formatting_elements(GumboParser* parser) {
     element = elements->data[i];
     assert(element != &kActiveFormattingScopeMarker);
     GumboNode* clone = clone_node (
-      parser,
       element,
       GUMBO_INSERTION_RECONSTRUCTED_FORMATTING_ELEMENT
     );
@@ -2350,7 +2344,7 @@ static void adoption_agency_algorithm(GumboParser* parser, GumboToken* token)
       // Step 14.7.
       // "common ancestor as the intended parent" doesn't actually mean insert
       // it into the common ancestor; that happens below.
-      node = clone_node(parser, node, GUMBO_INSERTION_ADOPTION_AGENCY_CLONED);
+      node = clone_node(node, GUMBO_INSERTION_ADOPTION_AGENCY_CLONED);
       assert(formatting_index >= 0);
       state->_active_formatting_elements.data[formatting_index] = node;
       assert(node_index >= 0);
@@ -2388,7 +2382,6 @@ static void adoption_agency_algorithm(GumboParser* parser, GumboToken* token)
 
     // Step 16.
     GumboNode* new_formatting_node = clone_node (
-      parser,
       formatting_node,
       GUMBO_INSERTION_ADOPTION_AGENCY_CLONED
     );
@@ -4600,7 +4593,6 @@ static void handle_token(GumboParser* parser, GumboToken* token) {
 }
 
 static GumboNode* create_fragment_ctx_element (
-  GumboParser* parser,
   const char* tag_name,
   GumboNamespaceEnum ns,
   const char* encoding
@@ -4610,7 +4602,7 @@ static GumboNode* create_fragment_ctx_element (
   GumboNodeType type =
     ns == GUMBO_NAMESPACE_HTML && tag == GUMBO_TAG_TEMPLATE
     ? GUMBO_NODE_TEMPLATE : GUMBO_NODE_ELEMENT;
-  GumboNode* node = create_node(parser, type);
+  GumboNode* node = create_node(type);
   GumboElement* element = &node->v.element;
   element->children = kGumboEmptyVector;
   if (encoding) {
@@ -4674,7 +4666,7 @@ static void fragment_parser_init (
   // 4. [Create a new HTML parser, and associate it with the just created Document node.]
   // 5. [Set the state of the HTML parser's tokenization stage as follows, switching on the context element:]
   parser->_parser_state->_fragment_ctx =
-    create_fragment_ctx_element(parser, fragment_ctx, fragment_namespace, fragment_encoding);
+    create_fragment_ctx_element(fragment_ctx, fragment_namespace, fragment_encoding);
   GumboTag ctx_tag = parser->_parser_state->_fragment_ctx->v.element.tag;
 
   // 4.
@@ -4790,7 +4782,6 @@ GumboOutput* gumbo_parse_with_options (
   uint_fast32_t loop_count = 0;
 
   const unsigned int max_tree_depth = options->max_tree_depth;
-  const unsigned int max_nodes = options->max_nodes;
   GumboToken token;
 
   do {
@@ -4803,15 +4794,11 @@ GumboOutput* gumbo_parse_with_options (
         adjusted_current_node &&
           adjusted_current_node->v.element.tag_namespace != GUMBO_NAMESPACE_HTML
       );
-      // If a construction limit has been exceeded, proceed as if EOF has been reached.
+      // If the maximum tree depth has been exceeded, proceed as if EOF has been reached.
       //
       // The parser is pretty fragile. Breaking out of the parsing loop in the middle of
       // the parse can leave the document in an inconsistent state.
-      if (unlikely(max_nodes && parser._node_count > max_nodes)) {
-        parser._output->status = GUMBO_STATUS_TOO_MANY_NODES;
-        gumbo_debug("Document node limit exceeded.\n");
-        token.type = GUMBO_TOKEN_EOF;
-      } else if (unlikely(state->_open_elements.length > max_tree_depth)) {
+      if (unlikely(state->_open_elements.length > max_tree_depth)) {
         parser._output->status = GUMBO_STATUS_TREE_TOO_DEEP;
         gumbo_debug("Tree depth limit exceeded.\n");
         token.type = GUMBO_TOKEN_EOF;
@@ -4924,8 +4911,6 @@ const char* gumbo_status_to_string(GumboOutputStatus status) {
       return "System allocator returned NULL during parsing";
     case GUMBO_STATUS_TOO_MANY_ATTRIBUTES:
       return "Attributes per element limit exceeded";
-    case GUMBO_STATUS_TOO_MANY_NODES:
-      return "Document node limit exceeded";
     case GUMBO_STATUS_TREE_TOO_DEEP:
       return "Document tree depth limit exceeded";
     default:

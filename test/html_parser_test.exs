@@ -1,7 +1,7 @@
 defmodule Campfire.HtmlParserTest do
   use ExUnit.Case, async: true
 
-  test "parser produces native terms on a dirty scheduler" do
+  test "parser produces native terms through an isolated worker" do
     html = ~s(<p class="message">Hello<!-- pause --><strong>world</strong></p>)
 
     expected = [

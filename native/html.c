@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "nokogiri_gumbo.h"
 #include "util.h"
 
@@ -71,6 +72,7 @@ int main(void) {
 
   unsigned char header[4];
   while (fread(header, 1, 4, stdin) == 4) {
+    alarm(25);
     uint32_t length =
       ((uint32_t)header[0] << 24) |
       ((uint32_t)header[1] << 16) |
@@ -119,6 +121,7 @@ int main(void) {
     if (ferror(file)) return 2;
     fflush(stdout);
     fclose(file);
+    alarm(0);
   }
   return ferror(stdin) ? 2 : 0;
 }
