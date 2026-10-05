@@ -175,6 +175,8 @@ defmodule Campfire.MessagesView do
     _ -> ""
   end
 
+  defp presentation!(nil), do: ""
+
   defp presentation!(body) do
     body
     |> RichText.parse()

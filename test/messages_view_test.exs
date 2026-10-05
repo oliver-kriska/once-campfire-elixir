@@ -66,6 +66,24 @@ defmodule Campfire.MessagesViewTest do
     refute html =~ ~s(name="authenticity_token")
   end
 
+  test "a missing rich-text body renders the full empty message card", %{message: message} do
+    DB.query(
+      "DELETE FROM action_text_rich_texts WHERE record_type='Message' AND record_id=? AND name='body'",
+      [message["id"]]
+    )
+
+    html = MessagesView.render(message, "https://campfire.test")
+
+    assert html =~ message["client_message_id"]
+    assert html =~ ~s(data-messages-target="message")
+    refute html =~ "Failed to load message content"
+  end
+
+  test "missing and explicitly empty rich text remain distinct" do
+    assert MessagesView.presentation(nil) == ""
+    assert MessagesView.presentation("") =~ ~s(<div class="lexxy-content">)
+  end
+
   test "a failed render does not poison the fragment cache", %{message: message} do
     failed = MessagesView.render(%{message | "creator_id" => -1}, "https://campfire.test")
     assert failed =~ "Failed to load message content"
