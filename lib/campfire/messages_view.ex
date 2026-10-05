@@ -13,15 +13,11 @@ defmodule Campfire.MessagesView do
       render_fragment(message, base, if(csrf, do: :placeholder))
     end)
     |> put_csrf(csrf)
+  rescue
+    _ -> failed_fragment()
   end
 
-  def render_many(messages, base, csrf) do
-    csrf_mode = if csrf, do: :placeholder
-
-    :message
-    |> Campfire.FragmentCache.records(messages, &render_fragment(&1, base, csrf_mode))
-    |> Enum.map_join(&put_csrf(&1, csrf))
-  end
+  def render_many(messages, base, csrf), do: Enum.map_join(messages, &render(&1, base, csrf))
 
   defp render_fragment(message, base, csrf) do
     creator = DB.one("SELECT * FROM users WHERE id=?", [message["creator_id"]])
@@ -62,10 +58,11 @@ defmodule Campfire.MessagesView do
       boosting: render_boosts(message, csrf),
       csrf_input: csrf_input(csrf)
     )
-  rescue
-    _ ->
-      "<div class=\"message message--formatted message--failed center\">\n  <div class=\"message__body\">\n    <div class=\"message__body-content txt-align-center\">\n      Failed to load message content\n    </div>\n  </div>\n</div>\n"
   end
+
+  defp failed_fragment,
+    do:
+      "<div class=\"message message--formatted message--failed center\">\n  <div class=\"message__body\">\n    <div class=\"message__body-content txt-align-center\">\n      Failed to load message content\n    </div>\n  </div>\n</div>\n"
 
   defp attachment_actions(message) do
     if blob = Campfire.Attachments.find("Message", message["id"], "attachment") do

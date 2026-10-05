@@ -109,13 +109,11 @@ for port in ports:
   try:s.bind(('127.0.0.1',port))
   except OSError:raise SystemExit(f'Benchmark port {port} is already occupied')
 PYPORT
-if [ ! -x "$LOADGEN" ]; then
-  mkdir -p "$LOADGEN_CARGO_HOME"
-  docker run --rm --user "$(id -u):$(id -g)" \
-    -e CARGO_HOME=/cargo -e CARGO_TARGET_DIR=/app/target/bench \
-    -v "$LOADGEN_CARGO_HOME:/cargo" -v "$ROOT:/app" -w /app/bench/loadgen \
-    "$LOADGEN_BUILD_IMAGE" cargo build --release --locked
-fi
+mkdir -p "$LOADGEN_CARGO_HOME"
+docker run --rm --user "$(id -u):$(id -g)" \
+  -e CARGO_HOME=/cargo -e CARGO_TARGET_DIR=/app/target/bench \
+  -v "$LOADGEN_CARGO_HOME:/cargo" -v "$ROOT:/app" -w /app/bench/loadgen \
+  "$LOADGEN_BUILD_IMAGE" cargo build --release --locked
 
 ROOM=$(label rooms.watercooler)        # the busy room (131 messages)
 WRITE_ROOM=$(label rooms.hq)           # writes and uploads go here, so the busy room stays put

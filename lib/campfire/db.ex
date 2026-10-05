@@ -1,9 +1,15 @@
 defmodule Campfire.DB do
   use GenServer
   alias Exqlite.Sqlite3, as: SQL
+  @transaction_db {__MODULE__, :transaction_db}
 
   defmodule Error do
     defexception [:reason, message: "SQLite operation failed"]
+  end
+
+  defmodule TransactionException do
+    @moduledoc false
+    defstruct [:kind, :reason, :stacktrace]
   end
 
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts, name: __MODULE__)
@@ -62,16 +68,9 @@ defmodule Campfire.DB do
   end
 
   def query(sql, params \\ []) do
-    if select?(sql) and Process.whereis(Campfire.DB.ReadPool) do
-      case Exqlite.query(Campfire.DB.ReadPool, sql, params) do
-        {:ok, %{columns: columns, rows: rows}} ->
-          Enum.map(rows, &Map.new(Enum.zip(columns, &1)))
-
-        {:error, error} ->
-          {:error, sqlite_error(error)}
-      end
-    else
-      GenServer.call(__MODULE__, {:query, sql, params})
+    case Process.get(@transaction_db) do
+      nil -> query_outside_transaction(sql, params)
+      db -> run(db, sql, params)
     end
   end
 
@@ -82,7 +81,15 @@ defmodule Campfire.DB do
     end
   end
 
-  def transaction(fun), do: GenServer.call(__MODULE__, {:transaction, fun}, 30_000)
+  def transaction(fun) do
+    case GenServer.call(__MODULE__, {:transaction, fun}, 30_000) do
+      {:raise, %TransactionException{kind: kind, reason: reason, stacktrace: stacktrace}} ->
+        :erlang.raise(kind, reason, stacktrace)
+
+      {:ok, result} ->
+        result
+    end
+  end
 
   def restore_fixture(fixture),
     do: GenServer.call(__MODULE__, {:restore_fixture, fixture}, 30_000)
@@ -134,17 +141,51 @@ defmodule Campfire.DB do
   def handle_call({:transaction, fun}, _, db) do
     try do
       execute!(db, "BEGIN IMMEDIATE")
-      result = fun.(fn sql, params -> run(db, sql, params) end)
+      result = with_transaction_db(db, fn -> fun.(fn sql, params -> run(db, sql, params) end) end)
       execute!(db, "COMMIT")
-      {:reply, result, db}
+      {:reply, {:ok, result}, db}
     rescue
       error in Error ->
         SQL.execute(db, "ROLLBACK")
-        {:reply, {:error, error}, db}
+        {:reply, {:ok, {:error, error}}, db}
 
       error ->
         SQL.execute(db, "ROLLBACK")
-        reraise error, __STACKTRACE__
+
+        {:reply,
+         {:raise, %TransactionException{kind: :error, reason: error, stacktrace: __STACKTRACE__}},
+         db}
+    catch
+      kind, reason ->
+        SQL.execute(db, "ROLLBACK")
+
+        {:reply,
+         {:raise, %TransactionException{kind: kind, reason: reason, stacktrace: __STACKTRACE__}},
+         db}
+    end
+  end
+
+  defp query_outside_transaction(sql, params) do
+    if select?(sql) and Process.whereis(Campfire.DB.ReadPool) do
+      case Exqlite.query(Campfire.DB.ReadPool, sql, params) do
+        {:ok, %{columns: columns, rows: rows}} ->
+          Enum.map(rows, &Map.new(Enum.zip(columns, &1)))
+
+        {:error, error} ->
+          {:error, sqlite_error(error)}
+      end
+    else
+      GenServer.call(__MODULE__, {:query, sql, params})
+    end
+  end
+
+  defp with_transaction_db(db, fun) do
+    Process.put(@transaction_db, db)
+
+    try do
+      fun.()
+    after
+      Process.delete(@transaction_db)
     end
   end
 

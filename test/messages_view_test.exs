@@ -66,6 +66,15 @@ defmodule Campfire.MessagesViewTest do
     refute html =~ ~s(name="authenticity_token")
   end
 
+  test "a failed render does not poison the fragment cache", %{message: message} do
+    failed = MessagesView.render(%{message | "creator_id" => -1}, "https://campfire.test")
+    assert failed =~ "Failed to load message content"
+
+    recovered = MessagesView.render(message, "https://campfire.test")
+    refute recovered =~ "Failed to load message content"
+    assert recovered =~ message["client_message_id"]
+  end
+
   test "concurrent cache rollover remains bounded and returns every rendered value" do
     for i <- 1..4096, do: FragmentCache.fetch({:seed, i}, fn -> Integer.to_string(i) end)
 

@@ -4,7 +4,7 @@ An Elixir implementation of [ONCE Campfire](https://github.com/basecamp/once-cam
 It keeps the existing SQLite database, storage layout, signed/encrypted cookies and
 Action Cable protocol, so existing installs can retain their data and sessions.
 
-The application runs on Elixir 1.19.5 / OTP 28 with Bandit and Plug. Local OTP
+The application runs on Elixir 1.20.4 / OTP 29 with Bandit and Plug. Local OTP
 registries handle broadcasts, ETS holds rendered fragments, and a persistent Redis
 queue feeds the native Resque-compatible worker. The same Thruster binary as Rails
 handles TLS, HTTP/2 and proxy caching. libvips and FFmpeg process media. The Rails
@@ -27,6 +27,19 @@ bin/mix deps.get
 bin/export-assets
 docker build -t campfire-elixir:release .
 ```
+
+On an Apple Silicon Mac building `linux/amd64` images through Rosetta, OTP's JIT may
+fail during the build because userspace emulation cannot use its default dual memory
+mapping. Opt in to single-mapped JIT memory for that local image only:
+
+```sh
+docker build --platform linux/amd64 -f Dockerfile.dev \
+  --build-arg ERL_FLAGS='+JMsingle true' -t campfire-elixir:toolchain .
+```
+
+The build argument is empty by default, so native Linux production images retain
+OTP's normal JIT configuration. Record this flag and the emulated architecture in
+benchmark metadata; use the same flag for every compared arm.
 
 Then run Docker:
 
@@ -143,7 +156,71 @@ ledger and reusable migration tooling in [`tools/rails-to-elixir/`](tools/rails-
 The Rails reference is pinned to
 [`90b3300`](https://github.com/basecamp/once-campfire/commit/90b330024dec3e757c79b6a7e6568f93da8e3148).
 
-Use the Docker toolchain above, then run:
+### Local macOS development (no Docker)
+
+The pinned Docker toolchain uses Elixir 1.20.4 / OTP 29; native development is also
+tested with Elixir 1.19.5 / OTP 28. Use Ruby 3.4.10 (the version in
+`reference/.ruby-version`) on your `PATH`. Ruby is only needed to build the genuine
+Rails frontend, not to compile or run Elixir afterward. Install Xcode Command Line
+Tools (`xcode-select --install`), Bundler, and the native media dependencies:
+
+```sh
+brew install vips ffmpeg pkg-config
+gem install bundler -v 4.0.13
+bin/setup-local
+```
+
+`bin/setup-local` initializes the pinned submodule, runs `bin/export-assets --local`,
+compiles the libvips helper into `var/bin`, and fetches Hex dependencies. Mix compiles
+the vendored Gumbo NIF during the first Elixir build. Asset export installs the frozen
+Rails bundle and precompiles assets in a disposable copy under `var/`; it never runs
+Bundler or Rails inside `reference/`. The first run needs network access to public
+GitHub, RubyGems and Hex sources. No reference/toolchain Docker images, Redis service
+or Rails secrets are required.
+
+In each shell, from the repository root:
+
+```sh
+export PATH="$PWD/var/bin:$PATH"
+export CAMPFIRE_NO_SERVER=1 CAMPFIRE_JOBS_ADAPTER=disabled
+export DATABASE_PATH="$PWD/var/test.sqlite3"
+
+mix format --check-formatted
+mix compile --warnings-as-errors
+mix credo --strict
+mix dialyzer
+mix test --warnings-as-errors
+```
+
+The database must be disposable: tests restore fixtures into it. These environment
+variables reproduce the test isolation supplied by `bin/mix`, which remains a
+**Docker wrapper**. Use plain `mix` for native development. Do not reuse `_build/`
+or `deps/` between host and Docker builds; remove those generated directories and
+fetch dependencies again when switching toolchains. Dialyzer builds its PLT on
+the first run, so expect that run to take longer.
+
+**Media parity is platform-dependent.** The full local test command intentionally
+keeps the exact Linux byte/checksum assertions in `media_test.exs` and
+`transformations_test.exs`. Homebrew libvips/FFmpeg and their codecs can produce
+different bytes; these failures do not indicate a missing bootstrap step. On macOS
+with libvips 8.18.7, 33 such assertions failed while all other tests passed. Use the
+pinned Docker toolchain for authoritative byte-level media parity; do not regenerate
+the Rails vectors or weaken these assertions to accommodate host codec versions.
+
+Native development also uses Exqlite's bundled SQLite build, while the pinned Docker
+toolchain sets `EXQLITE_USE_SYSTEM=1` and links the image's SQLite library. Both must
+pass the same database behavior tests, but record this engine difference alongside
+codec versions when comparing local results; pinned Docker remains authoritative for
+matched parity and benchmark evidence.
+
+If only the asset manifest is missing, `bin/export-assets --local` is sufficient
+(with the pinned submodule, Ruby and Bundler installed). No placeholder manifest is
+used. Without `--local`, export still requires the revision-matched
+`campfire-reference:app` image from the production build instructions above.
+
+### Pinned Docker parity workflow
+
+Build the Docker toolchain and reference image above, then run:
 
 ```sh
 bin/mix format --check-formatted
@@ -166,9 +243,23 @@ and [conversion state](plans/elixir-conversion.md).
 
 The fixture services use isolated data, Redis and ports 47070/47071/47079. Frozen
 Rails comparisons additionally require the `campfire-reference:latest` image from
-the Rust parity harness, built from the same pinned reference. Live gates reset
-their fixture data and must run sequentially. Unit tests disable the HTTP server
-and external job adapter.
+the public Rust parity harness. Its initial self-contained Docker resources are at
+[`95af38b`](https://github.com/basecamp/once-campfire-rust/commit/95af38bcc90f0ab06f703007ca25aa9e199536f1),
+which pins the same Rails revision. Build both reference tags from a separate clone:
+
+```sh
+git clone --recurse-submodules https://github.com/basecamp/once-campfire-rust.git
+cd once-campfire-rust
+git checkout 95af38bcc90f0ab06f703007ca25aa9e199536f1
+git submodule update --init reference
+PARITY_RUNTIME=docker parity/bin/reference build
+```
+
+This produces `campfire-reference:app` and the parity wrapper
+`campfire-reference:latest`. On Apple Silicon, run the benchmark's documented
+`linux/amd64` environment consistently rather than mixing native and emulated images.
+Live gates reset their fixture data and must run sequentially. Unit tests disable the
+HTTP server and external job adapter.
 
 For the full gate run, start a disposable Chromium instance on port 47080 with a
 separate profile, then start the fixture services:

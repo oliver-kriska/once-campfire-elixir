@@ -42,6 +42,29 @@ README for exact commands, source/image hashes, profiling evidence, results, and
 semantic caveats. These matched numbers supersede neither the four-language table
 nor figures captured on other hardware.
 
+### Exact populated seed
+
+The exact seed used by the matched Elixir runs is preserved as
+[`fixtures/campfire-benchmark-seed-default-20261004.tar.gz`](fixtures/campfire-benchmark-seed-default-20261004.tar.gz).
+Restore it without reusing mutable data from either source checkout:
+
+```sh
+test "$(shasum -a 256 bench/fixtures/campfire-benchmark-seed-default-20261004.tar.gz | awk '{print $1}')" = \
+  668a9e9b5a3f0e132a3be77503446af71887289d539ea8c053e12057a18c0a52
+rm -rf parity/.seed/default
+mkdir -p parity/.seed
+tar -xzf bench/fixtures/campfire-benchmark-seed-default-20261004.tar.gz -C parity/.seed
+test "$(shasum -a 256 parity/.seed/default/db/production.sqlite3 | awk '{print $1}')" = \
+  bda9a5cd61d78d53f377cf07ee9268741caebc19b94a6efe782cafe827efc8db
+```
+
+`bench/run` copies this seed for every app invocation; it does not benchmark in the
+preserved directory. The public Rust harness can regenerate the canonical logical
+seed with `PARITY_RUNTIME=docker parity/bin/seed build default` at commit
+`95af38bcc90f0ab06f703007ca25aa9e199536f1`. That process guarantees matching SQL
+dump and storage-tree bytes, but independent SQLite files need not have the same raw
+file hash. Use this archived fixture when reproducing the exact historical input.
+
 The completed baseline is in `results/baseline-20261004/`. Profiling evidence and
 changes are described in [TUNING.md](TUNING.md). To reproduce the matched comparison:
 

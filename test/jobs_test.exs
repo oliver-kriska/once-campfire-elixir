@@ -1,6 +1,7 @@
 defmodule Campfire.JobsTest do
   use ExUnit.Case, async: false
-  alias Campfire.{Chat, DB, Webhooks, Worker}
+  import ExUnit.CaptureLog
+  alias Campfire.{Chat, DB, Jobs, Webhooks, Worker}
   @fixture Jason.decode!(File.read!("test/fixtures/seed.json"))
   setup do
     DB.restore_fixture(@fixture)
@@ -73,5 +74,25 @@ defmodule Campfire.JobsTest do
         "arguments" => [%{"_aj_globalid" => "gid://campfire/User/999999999999"}]
       })
     end
+  end
+
+  test "enqueue reports unavailable Redis without exiting the caller" do
+    adapter = System.get_env("CAMPFIRE_JOBS_ADAPTER")
+    System.delete_env("CAMPFIRE_JOBS_ADAPTER")
+
+    on_exit(fn ->
+      if adapter,
+        do: System.put_env("CAMPFIRE_JOBS_ADAPTER", adapter),
+        else: System.delete_env("CAMPFIRE_JOBS_ADAPTER")
+    end)
+
+    assert Process.whereis(Campfire.Redis) == nil
+
+    log =
+      capture_log(fn ->
+        assert Jobs.enqueue("ExampleJob", []) == {:error, :redis_unavailable}
+      end)
+
+    assert log =~ "Campfire job enqueue failed: :redis_unavailable"
   end
 end
