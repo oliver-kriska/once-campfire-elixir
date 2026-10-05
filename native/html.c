@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/resource.h>
 #include "nokogiri_gumbo.h"
+#include "util.h"
 
 /* Fault-isolated fallback for documents that exceed the in-process node budget. */
 static void string(FILE *file, const char *value) {
@@ -67,9 +67,7 @@ static void children(FILE *file, const GumboVector *nodes) {
 }
 
 int main(void) {
-  const rlim_t memory_limit = 256 * 1024 * 1024;
-  const struct rlimit limits = {memory_limit, memory_limit};
-  if (setrlimit(RLIMIT_AS, &limits) != 0) return 2;
+  gumbo_set_allocation_limit(256 * 1024 * 1024);
 
   unsigned char header[4];
   while (fread(header, 1, 4, stdin) == 4) {

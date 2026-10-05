@@ -302,8 +302,9 @@ raw differences and the comparison rules are documented in
 
 Within the NIF budget, native allocator failures, assertion failures or other C
 defects can still terminate the BEAM. The fallback isolates larger parses and limits
-them to 256 MiB; inputs that exhaust that allowance fail the parser call rather than
-the application VM. Normal corpus content remains on the NIF path.
+Gumbo allocations to 256 MiB without restricting platform runtime or emulator memory;
+inputs that exhaust that allowance fail the parser call rather than the application VM.
+Normal corpus content remains on the NIF path.
 
 Elixir retains Redis and Resque-compatible jobs, while Rust uses integrated
 queues and a different frontend/server implementation. Their actual process
