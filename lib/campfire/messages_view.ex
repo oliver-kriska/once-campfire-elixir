@@ -53,7 +53,7 @@ defmodule Campfire.MessagesView do
       created_iso: iso(message["created_at"]),
       emoji_class:
         if(all_emoji?(RichText.plain_text(body || "")), do: "message--emoji", else: ""),
-      presentation: presentation_message(message, body),
+      presentation: presentation_fragment(message, body),
       attachment_actions: attachment_actions(message),
       boosting: render_boosts(message, csrf),
       csrf_input: csrf_input(csrf)
@@ -151,17 +151,31 @@ defmodule Campfire.MessagesView do
     do: Regex.match?(~r/\A(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\x{FE0F})+\z/u, text)
 
   def presentation_message(message, body) do
+    present(message, body, &presentation/1)
+  end
+
+  defp presentation_fragment(message, body) do
+    present(message, body, &presentation!/1)
+  end
+
+  defp present(message, body, render) do
     blob = Campfire.Attachments.find("Message", message["id"], "attachment")
     sound = Campfire.Sounds.find(Campfire.Chat.plain_text_body(message, body || ""))
 
     cond do
       blob -> Campfire.AttachmentView.render(blob)
       sound -> Campfire.Sounds.render(sound)
-      true -> presentation(body)
+      true -> render.(body)
     end
   end
 
   def presentation(body) do
+    presentation!(body)
+  rescue
+    _ -> ""
+  end
+
+  defp presentation!(body) do
     body
     |> RichText.parse()
     |> remove_solo_link()
@@ -172,8 +186,6 @@ defmodule Campfire.MessagesView do
     |> final_sanitize()
     |> RichText.serialize_nodes()
     |> Campfire.Autolink.render()
-  rescue
-    _ -> ""
   end
 
   defp remove_solo_link(nodes) do

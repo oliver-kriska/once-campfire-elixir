@@ -50,7 +50,8 @@ defmodule Campfire.Jobs do
       {:error, error} -> enqueue_error(error)
     end
   catch
-    :exit, {:noproc, _} -> enqueue_error(:redis_unavailable)
+    :exit, {:redix_exited_during_call, reason} ->
+      enqueue_error({:redis_unavailable, reason})
   end
 
   defp enqueue_error(error) do

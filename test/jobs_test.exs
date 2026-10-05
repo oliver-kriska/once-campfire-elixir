@@ -95,4 +95,34 @@ defmodule Campfire.JobsTest do
 
     assert log =~ "Campfire job enqueue failed: :redis_unavailable"
   end
+
+  test "enqueue reports a Redis disconnect race without exiting the caller" do
+    adapter = System.get_env("CAMPFIRE_JOBS_ADAPTER")
+    System.delete_env("CAMPFIRE_JOBS_ADAPTER")
+
+    redis =
+      spawn(fn ->
+        receive do
+          {:"$gen_cast", _request} -> exit(:simulated_disconnect)
+        end
+      end)
+
+    Process.register(redis, Campfire.Redis)
+
+    on_exit(fn ->
+      if Process.alive?(redis), do: Process.exit(redis, :kill)
+
+      if adapter,
+        do: System.put_env("CAMPFIRE_JOBS_ADAPTER", adapter),
+        else: System.delete_env("CAMPFIRE_JOBS_ADAPTER")
+    end)
+
+    log =
+      capture_log(fn ->
+        assert Jobs.enqueue("ExampleJob", []) ==
+                 {:error, {:redis_unavailable, :simulated_disconnect}}
+      end)
+
+    assert log =~ "Campfire job enqueue failed: {:redis_unavailable, :simulated_disconnect}"
+  end
 end

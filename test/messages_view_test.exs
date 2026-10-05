@@ -75,6 +75,36 @@ defmodule Campfire.MessagesViewTest do
     assert recovered =~ message["client_message_id"]
   end
 
+  test "a failed rich-text presentation does not poison the fragment cache", %{
+    message: message
+  } do
+    %{"body" => body} =
+      DB.one(
+        "SELECT body FROM action_text_rich_texts WHERE record_type='Message' AND record_id=? AND name='body'",
+        [message["id"]]
+      )
+
+    DB.query(
+      "UPDATE action_text_rich_texts SET body=? WHERE record_type='Message' AND record_id=? AND name='body'",
+      [
+        "<p>Before <action-text-attachment sgid=\"nope\"></action-text-attachment> after</p>",
+        message["id"]
+      ]
+    )
+
+    failed = MessagesView.render(message, "https://campfire.test")
+    assert failed =~ "Failed to load message content"
+
+    DB.query(
+      "UPDATE action_text_rich_texts SET body=? WHERE record_type='Message' AND record_id=? AND name='body'",
+      [body, message["id"]]
+    )
+
+    recovered = MessagesView.render(message, "https://campfire.test")
+    refute recovered =~ "Failed to load message content"
+    assert recovered =~ message["client_message_id"]
+  end
+
   test "concurrent cache rollover remains bounded and returns every rendered value" do
     for i <- 1..4096, do: FragmentCache.fetch({:seed, i}, fn -> Integer.to_string(i) end)
 
